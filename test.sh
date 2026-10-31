@@ -4,8 +4,9 @@
 #     so they run on a fresh clone and need no personal data
 #   if fixtures/legacy/ exists (real files from the original program, git-ignored) the
 #     report tests additionally compare against the untouched KB.EXE printouts
-#   API integration tests run against a scratch copy of the current data/ in /tmp
-#   backend (JSON/CSV) tests use the current data/KABU.DBF as the source of truth
+#   API integration and backend (JSON/CSV) tests run against a scratch copy of the
+#     current data/ in /tmp; without data/ (fresh clone) they fall back to the
+#     anonymised fixtures, so ./test.sh works straight after a clone
 JAVA_HOME_DIR="${JAVA_HOME_DIR:-$HOME/.jdks/openjdk-26.0.2.1}"
 JAVAC="$JAVA_HOME_DIR/bin/javac"
 [ -x "$JAVAC" ] || JAVAC=javac

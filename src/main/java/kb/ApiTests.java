@@ -35,6 +35,12 @@ public final class ApiTests {
         // never let a misconfigured scratch directory point back at the real data
         if (work.toAbsolutePath().equals(src.toAbsolutePath()))
             throw new IllegalStateException("KB_TEST_DATA must differ from KB_DATA_SRC: " + work);
+        // a fresh clone has no data/; fall back to the anonymised fixtures so the API
+        // tests stay runnable without personal bookings
+        if (!Files.exists(src.resolve("KABU.DBF"))) {
+            src = Path.of(System.getenv().getOrDefault("KB_FIXTURES", "fixtures/anonymisiert"));
+            System.out.println("data/ fehlt - API-Tests laufen gegen " + src.resolve("KABU.DBF"));
+        }
         if (Files.exists(work)) deleteTree(work);
         copyTree(src, work);
 

@@ -163,10 +163,9 @@ PDF with no external dependencies. Details: [docs/REPORTS.md](docs/REPORTS.md).
 * when `fixtures/legacy/` exists locally, the report tests additionally compare against
   the untouched KB.EXE printouts - the strongest check that nothing in the layout drifted,
 
-* the API integration tests run against a scratch copy of the current `data/` in
-  `/tmp`, and derive their expectations from the data itself,
-* the backend tests read the current `data/KABU.DBF` and import into a scratch copy
-  in `/tmp`,
+* the API integration and backend (JSON/CSV) tests read the current `data/KABU.DBF`
+  and work on a scratch copy in `/tmp`, deriving their expectations from the data
+  itself; without a `data/` they fall back to `fixtures/anonymisiert/`,
 
 so the real `data/` is never modified.
 

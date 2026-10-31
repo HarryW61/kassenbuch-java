@@ -35,6 +35,12 @@ public final class BackendTests {
         if (work.toAbsolutePath().equals(src.toAbsolutePath()))
             throw new IllegalStateException("KB_BACKEND_DATA must differ from KB_DATA_SRC: " + work);
 
+        // a fresh clone has no data/; fall back to the anonymised fixtures so these
+        // tests stay runnable without personal bookings
+        if (!Files.exists(src.resolve("KABU.DBF"))) {
+            src = Path.of(System.getenv().getOrDefault("KB_FIXTURES", "fixtures/anonymisiert"));
+            System.out.println("data/ fehlt - Backend-Tests laufen gegen " + src.resolve("KABU.DBF"));
+        }
         if (!Files.exists(src.resolve("KABU.DBF"))) {
             System.out.println("FAIL KABU.DBF fehlt in " + src);
             System.exit(1);
