@@ -1,4 +1,7 @@
-# Kassenbuch (hb30) → Java port
+# Kassenbuch (hb30) → Java port 100% vibe-coded
+
+Based on strata (Niko1221) with LLM qwen3.8-flash-next-gyro-gyro-m 200K. Coding tool Pi Agent 1.4.0.
+Built on Ubuntu 26.04 LTS.
 
 Reverse-engineering + reimplementation of a Harbour/xBase "Kassenbuch" app
 (Harbour 3.0, compiled with `hbmk2` to `KB.EXE`, a DOS/ANSI 80x25 ASCII-terminal
