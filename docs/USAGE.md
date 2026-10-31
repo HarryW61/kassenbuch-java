@@ -268,3 +268,8 @@ is never modified by a test run.
 * [BACKEND.md](BACKEND.md) — JSON/CSV formats, import rules
 * [REPORTS.md](REPORTS.md) — report layout and PDF
 * [SPEC.md](SPEC.md) — legacy data model and business rules
+
+## License
+
+GPL-3.0-or-later. See `LICENSE` in the project root for the full text,
+`NOTICE.txt` for the copyright notice.

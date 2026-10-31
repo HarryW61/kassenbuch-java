@@ -53,6 +53,8 @@ bookings, reports, backups, and the command line reference.
 
 ```
 kassenbuch-java/
+  LICENSE                      # GPL-3.0-or-later, full text
+  NOTICE.txt                   # copyright notice and warranty disclaimer
   build.sh                     # javac build (no external deps)
   serve.sh                     # build + start the web app
   run.sh                       # CLI entry point
@@ -178,3 +180,18 @@ tax number) stay on your machine. Create it from whatever you have:
 `KB_DATA=/pfad/zu/daten ./serve.sh` also runs directly on another directory without
 copying anything. After the first start, fill in your master data in the
 **Stammdaten** tab (the shipped file still holds placeholders).
+
+## License
+
+GPL-3.0-or-later — see [LICENSE](LICENSE) for the full text and [NOTICE.txt](NOTICE.txt)
+for the copyright notice. Every source file carries the matching SPDX identifier.
+
+Copyright (C) 2026 HarryW61 <wilhar61@gmail.com>.
+
+You can redistribute and/or modify it under the terms of the GNU General Public
+License as published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version. It is distributed in the hope that
+it will be useful, but **without any warranty**; see LICENSE for details.
+
+The original Harbour/xBase sources this port was reverse-engineered from are not
+part of this repository and are not covered by this license.

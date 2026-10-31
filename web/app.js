@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 HarryW61 <wilhar61@gmail.com>
+// See LICENSE for the full license text.
+
 // Kassenbuch web UI - vanilla JS, talks to /api on the same origin.
 const state = { meta: null, period: "", bookings: [], editingNr: null, eTexts: [], aTexts: [] };
 let origE = [], origA = [];

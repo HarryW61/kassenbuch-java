@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 HarryW61 <wilhar61@gmail.com>
+// See LICENSE for the full license text.
+
 package kb;
 
 import com.sun.net.httpserver.HttpServer;
