@@ -263,6 +263,12 @@ public final class Cli {
           ./run.sh export csv out/KABU-alle.csv
           ./run.sh import out/KABU-alle.json --replace
         PERIODE examples: 4416 (Q4 2016), 1016 (Oct 2016), 2016 (yearly)
+
+        Hinweis: Hobby-Software ohne Garantie jeglicher Art. Buchungs- und Steuerdaten
+        für eine Steuererklärung müssen von Ihnen selbst geprüft werden; Nutzung
+        geschieht auf eigene Verantwortung. Kopieren Sie KABU.DBF, JABU.DBF und
+        STAMM.MEM, bevor das Programm zum ersten Mal in Ihre Dateien schreibt.
+        Details: NOTICE.txt
         """);
     }
 }

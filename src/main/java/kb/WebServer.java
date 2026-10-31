@@ -37,6 +37,12 @@ public final class WebServer {
         });
         server.setExecutor(null);
         System.out.println("Kassenbuch (legacy KABU.DBF in " + dataDir + ") -> http://localhost:" + port);
+        System.out.println("""
+            Hinweis: dieses Programm ist Hobby-Software ohne Garantie jeglicher Art. Buchungs-
+            und Steuerdaten für eine Steuererklärung müssen von Ihnen selbst geprüft werden;
+            Nutzung geschieht auf eigene Verantwortung. Kopieren Sie KABU.DBF, JABU.DBF und
+            STAMM.MEM, bevor das Programm zum ersten Mal in Ihre Dateien schreibt.
+            Details: NOTICE.txt""");
         server.start();
     }
 
