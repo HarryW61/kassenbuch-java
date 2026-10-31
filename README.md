@@ -115,7 +115,7 @@ In a container:
 
 ```sh
 docker build -t kassenbuch .
-docker run -p 8090:8090 -v "$PWD/data:/data" kassenbuch   # or: docker compose up -d
+docker run -p 8090:8090 -v "$PWD/data:/data" -v "$PWD/out:/out" kassenbuch   # or: docker compose up -d
 ```
 
 ## CLI

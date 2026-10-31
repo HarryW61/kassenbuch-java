@@ -116,8 +116,9 @@ The screen shows each step: the **Jahresabschluss** view lists them before you c
 and reports what was actually done afterwards, including the path of the CSV archive.
 The command line prints the same four steps numbered.
 
-The archive directory is `out/bak` relative to where you run the program; set
-`KB_BACKUP_DIR` to put it somewhere else, e.g. a backup share:
+The archive directory is `out/bak` relative to where you run the program. Set `KB_OUT`
+to an output directory and the archives go into its `bak` subdirectory, or name that
+directory exactly with `KB_BACKUP_DIR` (it wins over `KB_OUT`), e.g. a backup share:
 
 ```sh
 KB_BACKUP_DIR=/volume/backup/kassenbuch ./serve.sh
@@ -261,7 +262,7 @@ to be writable and backed up.
 
 ```sh
 docker build -t kassenbuch .
-docker run -p 8090:8090 -v "$PWD/data:/data" kassenbuch
+docker run -p 8090:8090 -v "$PWD/data:/data" -v "$PWD/out:/out" kassenbuch
 ```
 
 or with compose:
@@ -274,6 +275,12 @@ The bookkeeping files live in the `/data` volume, so they survive container rest
 Point the volume at an existing directory instead of a named one with
 `KB_DATA=/pfad/zum/data docker compose up`. The image is built from the JDK only —
 no dependencies are downloaded at runtime.
+
+`/out` (env `KB_OUT`) holds the files the program generates: the year-end CSV archive
+and the tar.gz backups, both under `/out/bak`. Reports are not written there — the API
+streams them as downloads. Point it at a real directory with
+`KB_OUT=/pfad/zum/out docker compose up`; keep the backups outside the program folder,
+or they stop being backups.
 
 ---
 

@@ -5,6 +5,7 @@
 #
 # Change the port with  KB_PORT=1234 docker compose up
 # Point at an existing data directory with  KB_DATA=/pfad/zum/data docker compose up
+# Point at an existing output directory with  KB_OUT=/pfad/zum/out docker compose up
 
 services:
   kassenbuch:
@@ -14,6 +15,13 @@ services:
       - "${KB_PORT:-8090}:8090"
     environment:
       KB_DATA: /data
+      KB_OUT: /out
       KB_PORT: "8090"
     volumes:
       - ${KB_DATA:-kassenbuch-data}:/data
+      - ${KB_OUT:-kassenbuch-out}:/out
+
+# Declared so the named defaults above exist; a KB_DATA/KB_OUT path overrides them.
+volumes:
+  kassenbuch-data:
+  kassenbuch-out:

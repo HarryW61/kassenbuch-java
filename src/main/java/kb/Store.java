@@ -305,10 +305,20 @@ public final class Store {
         return m;
     }
 
-    /** directory of the readable year-end CSV archive, relative to the working directory */
+    /**
+     * Where generated files go: the year-end CSV archive and the tar.gz backup.
+     * KB_BACKUP_DIR names the directory exactly and wins. KB_OUT names an output
+     * volume (the Docker image mounts /out); backups go into its "bak" subdirectory
+     * so they do not sit loose next to other generated files. Default is out/bak
+     * next to the working directory. Absolute paths are used as given, relative
+     * ones resolved against the working directory.
+     */
     public static Path backupDir() {
-        String dir = System.getenv().getOrDefault("KB_BACKUP_DIR", "out/bak");
-        return Path.of(dir);
+        String exact = System.getenv("KB_BACKUP_DIR");
+        if (exact != null && !exact.isBlank()) return Path.of(exact.trim());
+        String out = System.getenv("KB_OUT");
+        if (out != null && !out.isBlank()) return Path.of(out.trim()).resolve("bak");
+        return Path.of("out/bak");
     }
 
     /**

@@ -39,8 +39,10 @@ what happened:
               "28 Buchung(en) aus KABU.DBF entfernt"]}
 ```
 
-The CSV archive goes to `out/bak` relative to the working directory; override with
-`KB_BACKUP_DIR`. It is written before `KABU.DBF` is cleared.
+The CSV archive goes to `out/bak` relative to the working directory; set `KB_OUT` to
+use an output directory instead (the archive then lands in `<KB_OUT>/bak`), or
+`KB_BACKUP_DIR` to name that directory exactly - it wins over `KB_OUT`. It is written
+before `KABU.DBF` is cleared.
 
 ## Backup response
 
