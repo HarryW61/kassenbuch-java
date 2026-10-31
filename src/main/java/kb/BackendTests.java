@@ -28,13 +28,16 @@ public final class BackendTests {
 
     public static void main(String[] args) throws Exception {
         Locale.setDefault(Locale.US);
-        Path src = Path.of(System.getenv().getOrDefault("KB_DATA_SRC", "data"));
         Path work = Path.of(System.getenv().getOrDefault("KB_BACKEND_DATA", "/tmp/kbbackend-data"));
 
+        // the directory whose KABU.DBF must survive this run untouched
+        Path source = Path.of(System.getenv().getOrDefault("KB_DATA_SRC", "data"));
+
         // never let a misconfigured scratch directory point back at the real data
-        if (work.toAbsolutePath().equals(src.toAbsolutePath()))
+        if (work.toAbsolutePath().equals(source.toAbsolutePath()))
             throw new IllegalStateException("KB_BACKEND_DATA must differ from KB_DATA_SRC: " + work);
 
+        Path src = source;
         // a fresh clone has no data/; fall back to the anonymised fixtures so these
         // tests stay runnable without personal bookings
         if (!Files.exists(src.resolve("KABU.DBF"))) {
@@ -50,6 +53,12 @@ public final class BackendTests {
             Files.copy(src.resolve(f), work.resolve(f), StandardCopyOption.REPLACE_EXISTING);
 
         System.out.println("Quelle: " + src.resolve("KABU.DBF") + "  Arbeitsexemplar: " + work.resolve("KABU.DBF"));
+
+        // never write to the fixture set
+        if (!src.toAbsolutePath().equals(source.toAbsolutePath())) {
+            for (String f : new String[]{"KABU.DBF", "JABU.DBF", "STAMM.MEM"})
+                src.resolve(f).toFile().setReadOnly();
+        }
 
         Store live = new Store(src);
         List<Buchung> orig = live.bookingsFor(null);
@@ -187,8 +196,16 @@ public final class BackendTests {
         check("Exportname mit Periode", "KABU-4426.json", Store.exportFileName("json", "4426"));
 
         // ---------------------------------------------------------------- KABU.DBF pur
-        check("Quelle KABU.DBF unverändert", true, md5(src.resolve("KABU.DBF")).equals(md5OfOriginal));
-        check("Kein Austauschformat im Datenordner", true, !Files.exists(src.resolve("KABU.sqlite")) && !Files.exists(src.resolve("KABU.csv")));
+        // the fixture fallback doubles as our scratch copy, so only a real data/ can be
+        // checked for untouched files here; the fixtures themselves are read-only below
+        boolean sourceIsScratch = source.toAbsolutePath().equals(work.toAbsolutePath());
+        if (sourceIsScratch) {
+            System.out.println("übersprungen: KABU.DBF-Unverändertheit (Quelle = Arbeitsexemplar)");
+        } else {
+            check("Quelle KABU.DBF unverändert", true, md5(source.resolve("KABU.DBF")).equals(md5OfOriginal));
+            check("Kein Austauschformat im Datenordner", true,
+                    !Files.exists(source.resolve("KABU.sqlite")) && !Files.exists(source.resolve("KABU.csv")));
+        }
 
         System.out.println(failed == 0 ? "\nAlle Backend-Tests bestanden" : "\n" + failed + " Backend-Tests fehlgeschlagen");
         if (failed > 0) System.exit(1);
