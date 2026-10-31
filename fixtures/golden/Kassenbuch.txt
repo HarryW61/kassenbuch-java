@@ -33,8 +33,8 @@ Bu.Nr.  B.Datum   Bu.Art   Text                   Einnahme     Ausgabe.Brt.    A
   23   31.12.16   A      WEK 19%                                    54.00            45.38        8.62        2
 
 -----------------------------------------------------------------------------------------------------------------
-          Einahme Netto     (Zwischensumme)      7420.05          Umsatzsteuer      (Zwischensumme)      1364.94
-          Ausgaben Netto    (Zwischensumme)      3537.27          Mehrwertsteuer    (Zwischensumme)       672.08
+          Einahme Netto  (Zwischensumme)      7420.05          Umsatzsteuer   (Zwischensumme)      1364.94
+          Ausgaben Netto (Zwischensumme)      3537.27          Mehrwertsteuer (Zwischensumme)       672.08
 
 -----------------------------------------------------------------------------------------------------------------
 Kassenbuch fr Brigitte Wilczek BW-Dekorationen                              Zeitraum:  4416
@@ -54,10 +54,10 @@ Bu.Nr.  B.Datum   Bu.Art   Text                   Einnahme     Ausgabe.Brt.    A
   31   31.12.16   A      WEK 19%                                   423.43           355.82       67.61        2
 
 -----------------------------------------------------------------------------------------------------------------
-          Einahme Netto           7960.39          Umsatzsteuer            1467.60
-          Ausgaben Netto          5009.89          Mehrwertsteuer           934.83
+          Einahme Netto        7960.39          Umsatzsteuer         1467.60
+          Ausgaben Netto       5009.89          Mehrwertsteuer        934.83
           -------------------------------------------------------------------------
-          Unterschied             2950.50          Unterschied              532.77
+          Unterschied          2950.50          Unterschied           532.77
 
    >>>>>> Anzahl Buchungen 31  <<<<<<  
    >>>>>> Ende Kassenbuch 4416 <<<<<<  

@@ -133,4 +133,22 @@ Web: the **Berichte** view has "Download (.txt · CP437)" and "Download (.pdf)".
 * byte-identical output against `fixtures/golden/Kassenbuch.txt` and
   `fixtures/golden/Buchungsliste.txt` — the golden printouts were made from a
   31/30-row snapshot, so the comparison uses the matching row subset,
+* `Buchungsliste.txt` is untouched original KB.EXE output. `Kassenbuch.txt` was
+  **re-recorded** from this port after the currency marker (EUR) was dropped from the
+  totals block, and is compared unmodified; the old EUR translation helper stays in
+  `ReportTests.alignGolden()` for baselines recorded before that change,
 * the generated PDF starts with `%PDF-` and has one page per report page.
+
+Re-record a baseline deliberately, never as a side effect of a failing test:
+
+```sh
+./test.sh                                   # writes out/{Kassenbuch,Buchungsliste}-generated.txt
+cp out/Kassenbuch-generated.txt      fixtures/golden/Kassenbuch.txt
+cp out/Buchungsliste-generated.txt   fixtures/golden/Buchungsliste.txt
+```
+
+`ReportTests` renders the same 31/30-row subset as the baselines, so those two files
+are byte-identical to them. `./run.sh kabu 4416 --dos …` prints **all** fixture rows
+(32) and is meant for eyeballing a printout, not for re-recording. Both paths write
+CP437 + CRLF. Compare with `git diff` before committing — a baseline should only
+change when the layout was changed on purpose.
