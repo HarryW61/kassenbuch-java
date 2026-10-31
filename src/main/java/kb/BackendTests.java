@@ -39,26 +39,21 @@ public final class BackendTests {
 
         Path src = source;
         // a fresh clone has no data/; fall back to the anonymised fixtures so these
-        // tests stay runnable without personal bookings
+        // tests stay runnable without personal bookings. They are read from there but
+        // never written: everything destructive happens in `work`.
         if (!Files.exists(src.resolve("KABU.DBF"))) {
             src = Path.of(System.getenv().getOrDefault("KB_FIXTURES", "fixtures/anonymisiert"));
-            System.out.println("data/ fehlt - Backend-Tests laufen gegen " + src.resolve("KABU.DBF"));
+            System.out.println("data/ fehlt - Backend-Tests laufen lesend gegen " + src.resolve("KABU.DBF"));
         }
         if (!Files.exists(src.resolve("KABU.DBF"))) {
             System.out.println("FAIL KABU.DBF fehlt in " + src);
             System.exit(1);
         }
+        System.out.println("Quelle: " + src.resolve("KABU.DBF") + "  Arbeitsexemplar: " + work.resolve("KABU.DBF"));
+
         Files.createDirectories(work);
         for (String f : new String[]{"KABU.DBF", "JABU.DBF", "STAMM.MEM"})
             Files.copy(src.resolve(f), work.resolve(f), StandardCopyOption.REPLACE_EXISTING);
-
-        System.out.println("Quelle: " + src.resolve("KABU.DBF") + "  Arbeitsexemplar: " + work.resolve("KABU.DBF"));
-
-        // never write to the fixture set
-        if (!src.toAbsolutePath().equals(source.toAbsolutePath())) {
-            for (String f : new String[]{"KABU.DBF", "JABU.DBF", "STAMM.MEM"})
-                src.resolve(f).toFile().setReadOnly();
-        }
 
         Store live = new Store(src);
         List<Buchung> orig = live.bookingsFor(null);
