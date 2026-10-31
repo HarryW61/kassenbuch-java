@@ -1,0 +1,24 @@
+# Build output (javac writes the classes and every generated report here)
+out/
+
+# Live data: bookings, yearly summaries, master data (name, tax number, address).
+# Created by ./reset.sh from fixtures/ or from your own legacy files. Never commit.
+data/
+
+# Scratch copies that tests create outside the project
+/tmp/
+
+# Backup archives produced by the Backup button and by year-end closing
+*.tar.gz
+*.DBF.bak
+KABU.BAK
+KABU.[0-9][0-9]
+JABU.[0-9][0-9]
+
+# Editors / OS
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+*.iml

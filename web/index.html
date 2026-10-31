@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kassenbuch — hb30 Port</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">▚</span>
+    <div>
+      <h1>Kassenbuch</h1>
+      <p id="companyLine">—</p>
+    </div>
+  </div>
+  <div class="meta">
+    <label class="periodpick">
+      <span>Periode</span>
+      <select id="periodSelect"></select>
+    </label>
+    <span id="clock" class="clock"></span>
+    <span id="modeBadge" class="badge"></span>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button class="tab active" data-view="bookings" role="tab">Buchungen</button>
+  <button class="tab" data-view="ust" role="tab">Umsatzsteuer</button>
+  <button class="tab" data-view="reports" role="tab">Berichte</button>
+  <button class="tab" data-view="monthly" role="tab">Monatsübersicht</button>
+  <button class="tab" data-view="stamm" role="tab">Stammdaten</button>
+  <button class="tab" data-view="yearend" role="tab">Jahresabschluss</button>
+  <button class="tab" data-view="data" role="tab">Daten</button>
+</nav>
+
+<main>
+  <section class="summary" id="summary"></section>
+
+  <!-- Buchungen -->
+  <section class="view" id="view-bookings">
+    <div class="panel">
+      <h2>Neue Buchung</h2>
+      <form id="addForm" class="grid">
+        <label>Datum
+          <input type="date" id="fDatum">
+        </label>
+        <label>Art
+          <select id="fArt">
+            <option value="E">E — Einnahme</option>
+            <option value="A">A — Ausgabe</option>
+          </select>
+        </label>
+        <label>Buchungstext
+          <select id="fTextSelect"></select>
+        </label>
+        <label>Freitext <span class="hint">(optional)</span>
+          <input type="text" id="fText" maxlength="30" placeholder="z.B. Erloese 19%">
+        </label>
+        <label>Betrag (EUR)
+          <input type="number" id="fBetrag" min="0" step="0.01" value="0.00">
+        </label>
+        <label>Steuerschlüssel
+          <select id="fSchl">
+            <option value="0">0 — keine Steuer</option>
+            <option value="1">1 — ermäßigter Satz</option>
+            <option value="2" selected>2 — voller Satz</option>
+          </select>
+        </label>
+        <div class="preview">
+          <span>Steuer: <strong id="prevSteuer">0.00</strong></span>
+          <span>Netto: <strong id="prevNetto">0.00</strong></span>
+          <span>Periode: <strong id="prevPeriode">—</strong></span>
+        </div>
+        <button type="submit" class="btn primary">Buchen</button>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h2>Buchungen <span class="count" id="rowCount"></span></h2>
+      <div class="tablewrap">
+        <table id="bookingTable">
+          <thead>
+            <tr>
+              <th>Nr</th><th>Datum</th><th>Art</th><th>Text</th>
+              <th class="num">Betrag</th><th class="num">Steuer</th>
+              <th class="num">Netto</th><th>Schl</th><th>Periode</th><th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Umsatzsteuer -->
+  <section class="view hidden" id="view-ust">
+    <div class="panel">
+      <h2>Umsatzsteuer-Voranmeldung</h2>
+      <div id="ustBody"></div>
+    </div>
+  </section>
+
+  <!-- Berichte -->
+  <section class="view hidden" id="view-reports">
+    <div class="panel">
+      <h2>Berichte</h2>
+      <div class="reportbar">
+        <select id="reportKind">
+          <option value="kassenbuch">Kassenbuch</option>
+          <option value="buchungsliste">Buchungsliste</option>
+          <option value="ust">Umsatzsteuerberechnung</option>
+          <option value="info">Kassen-Information</option>
+        </select>
+        <button class="btn" id="reportRun">Anzeigen</button>
+        <span id="reportPeriod" class="hint"></span>
+        <a class="btn ghost" id="reportDownloadTxt" href="#">Download (.txt · CP437)</a>
+        <a class="btn ghost" id="reportDownloadPdf" href="#">Download (.pdf)</a>
+      </div>
+      <pre id="reportOut" class="terminal"></pre>
+    </div>
+  </section>
+
+  <!-- Monatsübersicht -->
+  <section class="view hidden" id="view-monthly">
+    <div class="panel">
+      <h2>Monatsübersicht (netto)</h2>
+      <p class="hint">Wie im Bericht <em>Kassen-Information</em>: jeder Monat für sich — Einnahmen,
+        Ausgaben und Ergebnis (die Differenz). Die Zeile <strong>Gesamt</strong> ist die Summe
+        über alle Monate. Auswahl ist „alle Perioden“.</p>
+      <table id="monthlyTable">
+        <thead><tr><th>Monat</th><th class="num">Einnahmen</th><th class="num">Ausgaben</th><th class="num">Ergebnis</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Stammdaten -->
+  <section class="view hidden" id="view-stamm">
+    <div class="panel">
+      <h2>Firmenstammdaten</h2>
+      <form id="stammForm" class="grid">
+        <label>Name 1 <input id="sName1" type="text"></label>
+        <label>Name 2 <input id="sName2" type="text"></label>
+        <label>Steuernummer <input id="sStnr" type="text"></label>
+        <label>Finanzamt <input id="sFinanzamt" type="text"></label>
+        <label>Straße <input id="sStrasse" type="text"></label>
+        <label>PLZ <input id="sPlz" type="text"></label>
+        <label>Ort <input id="sOrt" type="text"></label>
+        <label>Telefon <input id="sTelefon" type="text"></label>
+        <label>E-Mail <input id="sEmail" type="email" maxlength="40" placeholder="z.B. info@bw-dekorationen.de"></label>
+        <label>Gewerbe <input id="sGewerbe" type="text"></label>
+        <label>Steuersatz voll (%) <input id="sRateFull" type="number" step="0.5"></label>
+        <label>Steuersatz ermäßigt (%) <input id="sRateReduced" type="number" step="0.5"></label>
+        <label>Periodenmodus
+          <select id="sMode">
+            <option value="1111">jährlich (1111)</option>
+            <option value="0111">monatlich (0111)</option>
+            <option value="4111">quartalsweise (4111)</option>
+          </select>
+        </label>
+        <button type="submit" class="btn primary">Speichern</button>
+      </form>
+    </div>
+    <div class="panel">
+      <h2>Buchungstexte <span class="hint">Vorlagen für die Buchungserfassung</span></h2>
+      <div class="catalogue">
+        <div class="catcol">
+          <h3>Einnahme-Texte</h3>
+          <div id="eTextList" class="textlist"></div>
+          <button class="btn" id="addEText">+ Text</button>
+        </div>
+        <div class="catcol">
+          <h3>Ausgabe-Texte</h3>
+          <div id="aTextList" class="textlist"></div>
+          <button class="btn" id="addAText">+ Text</button>
+        </div>
+      </div>
+      <div class="reportbar">
+        <button class="btn primary" id="catalogueSave">Texte speichern</button>
+        <button class="btn ghost" id="catalogueUndo">Änderungen verwerfen</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Jahresabschluss -->
+  <section class="view hidden" id="view-yearend">
+    <div class="panel">
+      <h2>Jahresabschluss</h2>
+      <p class="hint">Der Jahresabschluss führt diese Schritte aus — in dieser Reihenfolge:</p>
+      <ol class="steps">
+        <li><code>KABU.DBF</code> wird im Datenordner als <code>KABU.YY</code> gesichert (z. B. <code>KABU.26</code>).</li>
+        <li>Alle Buchungen werden als <strong>CSV-Export</strong> nach
+          <code>out/bak/KABU-&lt;Jahr&gt;.csv</code> geschrieben — lesbar in Excel, vor dem Leeren.</li>
+        <li>Die Netto-Summen des Jahres (Einnahmen / Ausgaben) kommen als neue Zeile in <code>JABU.DBF</code>.</li>
+        <li><code>KABU.DBF</code> wird geleert; das neue Jahr beginnt ohne Buchungen.</li>
+      </ol>
+      <button class="btn danger" id="yearendBtn">Jahresabschluss durchführen</button>
+      <div id="yearendResult"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Datenbackup</h2>
+      <p class="hint">Der Backup-Button packt alles, was das Kassenbuch ausmacht, in eine einzige
+        Datei — ohne etwas zu löschen:</p>
+      <ul class="steps">
+        <li><code>KABU.DBF</code> (Buchungen), <code>JABU.DBF</code> (Jahresübersicht),
+          <code>STAMM.MEM</code> (Stammdaten)</li>
+        <li>alle vorhandenen Jahreskopien <code>KABU.YY</code> (z. B. <code>KABU.16</code>, <code>KABU.26</code>)</li>
+        <li>als <code>tar</code> gepackt und mit <code>gzip</code> komprimiert</li>
+        <li>Ziel: <code>out/bak/KB_DATA_BACK_JJJJMMTT_SSHHMMSS.tar.gz</code></li>
+      </ul>
+      <button class="btn primary" id="backupBtn">Backup erstellen</button>
+      <div id="backupResult"></div>
+      <p class="warnhinweis"><strong>HINWEIS:</strong> Die fertige Datei
+        <code>KB_DATA_BACK_…tar.gz</code> muss <strong>außerhalb des Programmordners
+        wegkopiert</strong> werden — z. B. auf eine externe Festplatte oder ein Network-Share.
+        Solange sie nur im <code>out/bak</code> dieses Programms liegt, ist sie kein Backup:
+        Bei einem Defekt des Rechners oder versehentlichem Löschen wäre beides verloren.</p>
+    </div>
+    <div class="panel">
+      <h2>Jahresübersicht (JABU.DBF)</h2>
+      <table id="jabuTable">
+        <thead><tr><th>Jahr</th><th class="num">Einnahmen netto</th><th class="num">Ausgaben netto</th><th class="num">Saldo</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Datenaustausch -->
+  <section class="view hidden" id="view-data">
+    <div class="panel">
+      <h2>Datenaustausch</h2>
+      <p class="hint">KABU.DBF bleibt die einzige Live-Datenbank. JSON und CSV sind Austauschformate:
+        exportiert aus KABU.DBF, importiert zurück in KABU.DBF. Beim Ersetzen wird die alte Datei als
+        KABU.BAK gesichert, so wie der Jahresabschluss die alte Datei als KABU.YY sichert.</p>
+      <div class="reportbar">
+        <label for="dataPeriod">Periode</label>
+        <select id="dataPeriod"></select>
+        <a class="btn ghost" id="exportJson" href="#">Export JSON</a>
+        <a class="btn ghost" id="exportCsv" href="#">Export CSV</a>
+      </div>
+      <div class="reportbar">
+        <label for="importFile">Datei importieren</label>
+        <input type="file" id="importFile" accept=".json,.csv">
+        <select id="importMode">
+          <option value="append">anhängen</option>
+          <option value="replace">ersetzen (KABU.BAK)</option>
+        </select>
+        <button class="btn" id="importBtn">Importieren</button>
+      </div>
+      <pre id="importOut" class="terminal"></pre>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast" hidden></div>
+<script src="/app.js"></script>
+</body>
+</html>
