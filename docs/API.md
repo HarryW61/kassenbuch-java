@@ -17,6 +17,8 @@ and write the legacy files in `KB_DATA` (default `data/`).
 | POST   | `/api/yearend`              | backup `KABU.YY` + CSV archive in `out/bak`, yearly totals into `JABU.DBF`, clear KABU |
 | POST   | `/api/backup`               | tar.gz of `KABU.DBF`, `JABU.DBF`, `STAMM.MEM` and all `KABU.YY` into `out/bak` (nothing is deleted) |
 | PUT    | `/api/stamm`                | update master data in STAMM.MEM                     |
+| GET    | `/api/firststart`           | guided first start: which identity fields are still placeholder or empty |
+| POST   | `/api/firststart`           | write the assistant's answers (validated, only non-empty fields)          |
 | GET    | `/api/report/{kind}?period=` | legacy-layout report: `kassenbuch`, `buchungsliste`, `ust`, `info` — `info` (Kassen-Information) ignores `period` and always covers all periods |
 | GET    | `/api/report/{kind}?period=&fmt=txt\|dos\|pdf` | `txt` = UTF-8, `dos` = original CRLF+CP437 bytes, `pdf` = A4 landscape PDF (see docs/REPORTS.md); for `info` the downloads cover all periods as well |
 | GET    | `/api/export?fmt=json\|csv\|dbf&period=` | bookings as an interchange file (`dbf` = byte-identical copy of the live file; empty `period` = all) |
@@ -121,6 +123,21 @@ maps to the legacy MEMO slot: `name1 -> ST_NAME1`, `steuernummer -> ST_STNR`,
 
 Validation mirrors the original: art must be `E`/`A`, schl 0–2, betrag > 0.
 Errors return `400` with `{"error": "..."}`.
+
+## Guided first start
+
+`GET /api/firststart` answers `{"needed": bool, "fields": [...], "known": {...}}`. It is
+`true` while the identity fields (name, address, PLZ, Ort, Gewerbe, Finanzamt,
+Steuernummer) are empty or still hold the shipped placeholders (`DEINNAME`,
+`123/123/12345`, and the fixture equivalents). Each field carries `key`, `label`,
+`hint`, `required`, `max` and a prefilled `value` (blank for placeholders).
+Tax rates and the period mode are only asked for when STAMM.MEM holds unusable
+values — they ship with 19 / 7 / quarterly.
+
+`POST /api/firststart` takes `{"name1": "...", "steuernummer": "..."}` and runs the same
+validation as `./run.sh init`. Empty or absent entries keep the existing value, so an
+optional field can be left alone. The response is the updated master data, identical in
+shape to `PUT /api/stamm`.
 
 ## Notes on faithfulness
 

@@ -123,6 +123,8 @@ all records (`PACK`).
 * [x] umlaut-safe encoding (CP437 for the legacy files, UTF-8 with de-DE formatting in
       the UI, ISO dates and dot decimals in JSON)
 * [x] JSON and CSV export/import with DBF as the live store - see [BACKEND.md](BACKEND.md)
+* [x] Docker packaging: multi-stage `Dockerfile` (JDK build, JRE runtime) and
+      `docker-compose.yml`, data in a `/data` volume via `KB_DATA`
 * [ ] interactive TUI reproducing the original 80-column screens (`BUCHEN`, `ABUCH`,
       `STAMM`, `DRUCKEN`) in the **theme of the web UI** - dark background with green and
       amber accents, not the Harbour blue/white field colours. Plain ANSI, JDK-only,

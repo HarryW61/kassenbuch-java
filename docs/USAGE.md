@@ -18,6 +18,20 @@ same files, so they can be used side by side — and so can the original `KB.EXE
 
 That builds the project and starts the server. Open the URL in a browser.
 
+If the master data still holds the shipped placeholders (`DEINNAME`, `123/123/12345`, …),
+the page opens a **Erste Einrichtung** dialog instead: it asks only for what the report
+header needs — name, company, address, PLZ, Ort, Gewerbe, Finanzamt, Steuernummer. The
+tax rates and period mode are already usable defaults and stay untouched unless you edit
+them later in **Stammdaten**. `Später in Stammdaten` dismisses the dialog without writing
+anything.
+
+The same assistant runs on the command line:
+
+```sh
+./run.sh init            # asks one field at a time, shows a preview, then confirms
+./run.sh init --yes      # no prompt, useful for scripts and setup automation
+```
+
 Before booking anything, set your master data: open the **Stammdaten** tab and fill
 in company name, address, tax office (`Finanzamt`), tax number, and the two tax
 rates. Also pick the **period mode**, which decides how bookings are grouped:
@@ -213,6 +227,8 @@ files above or use `export dbf`.
 ./run.sh                                     # show usage
 
 ./run.sh stamm                # master data
+./run.sh init                 # guided first start for placeholder master data
+./run.sh init --yes           # same, without the confirmation prompt
 ./run.sh list   [PERIODE]     # Buchungsliste
 ./run.sh kabu   [PERIODE]     # Kassenbuch
 ./run.sh ust    [PERIODE]     # Umsatzsteuer-Voranmeldung
@@ -240,6 +256,24 @@ KB_DATA=/pfad/zu/meinen/daten KB_PORT=8090 ./serve.sh
 The server has no authentication — keep it on your own machine or behind a local
 network. It writes to the data directory on every booking, so that directory needs
 to be writable and backed up.
+
+### Docker
+
+```sh
+docker build -t kassenbuch .
+docker run -p 8090:8090 -v "$PWD/data:/data" kassenbuch
+```
+
+or with compose:
+
+```sh
+docker compose up -d      # http://localhost:8090
+```
+
+The bookkeeping files live in the `/data` volume, so they survive container restarts.
+Point the volume at an existing directory instead of a named one with
+`KB_DATA=/pfad/zum/data docker compose up`. The image is built from the JDK only —
+no dependencies are downloaded at runtime.
 
 ---
 

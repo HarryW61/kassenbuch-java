@@ -1,44 +1,43 @@
 # Ideen für die nächsten Schritte
 
-Nicht angefangen, nur skizziert. Reihenfolge nach Nutzen/Aufwand.
+Erledigte Punkte bleiben als Eintrag stehen und beschreiben, was davon tatsächlich
+gemacht wurde. Reihenfolge nach Nutzen/Aufwand.
 
-## 1. Firststart-Assistent (STAMM.MEM leer oder Platzhalter)
+## 1. Firststart-Assistent (STAMM.MEM leer oder Platzhalter) — erledigt
 
 Der Auslöser ist nicht "Datei fehlt", sondern **leere bzw. Platzhalter-Werte**:
 die ausgelieferte `data/STAMM.MEM` enthält `ST_NAME1 = DEINNAME`,
 `ST_NAME2 = ZWEITNAME`, `ST_GEWERBE = Was machst du so`,
 `ST_FIAMT = Wo geht die Kohle hin`, `ST_STNR = 123/123/12345`.
 
-- Neue Methode `Stammdaten.isPristine()` (leere Werte ODER diese Platzhalter).
-- **Web:** beim Start, wenn `isPristine()` true ist, einen geführten Dialog zeigen
-  (Name 1/2, Steuernummer, Finanzamt, Adresse, Gewerbe, Steuersätze, Periodenmodus)
-  statt der Maske mit `DEINNAME`. Abbrechen muss möglich bleiben, damit die
-  bestehende Stammdaten-Maske erreichbar bleibt.
-- **CLI:** `./run.sh init` - geführte Abfrage über stdin, schreibt STAMM.MEM im
-  Originalformat (CP437, feste Schlüssellängen, `MemoWriter`). Vor dem Schreiben eine
-  Vorschau zeigen und bestätigen lassen.
+- Gemacht: `Stammdaten.isPristine()` (leere Werte ODER Platzhalter), dazu
+  `missingIdentity()`, `isPlaceholder(key)` und `ratesUsable()`. Raten und Periodenmodus
+  werden nur gefragt, wenn STAMM.MEM unbrauchbare Werte enthält - sie haben sinnvolle
+  Voreinstellungen (19 / 7 / quartalsweise).
+- **Web:** `GET/POST /api/firststart` plus Dialog „Erste Einrichtung“ beim Seitenaufruf.
+  Er fragt nur die Identitätsfelder ab; „Später in Stammdaten“ verwirft nichts.
+- **CLI:** `./run.sh init` (und `--yes`) - geführte Abfrage über stdin oder `System.console()`,
+  Vorschau und Bestätigung, dann `MemoWriter` im Originalformat (CP437, feste Schlüssellängen).
 - Die Reports nutzen `ST_NAME1/2` in der Kopfzeile - nach dem Assistenten sehen die
   Ausdrucke sofort korrekt aus, deshalb ist das der eigentliche Nutzen.
 - Nicht tun: `ST_QFO`, `ST_HOF`, `ST_FETON/OFF`, `ST_COMPON/OFF`, `ST_DRUCKER`,
   `ST_DATUM` abfragen - das sind Drucker-/Terminal-Steuersequenzen aus den 90ern,
   die im Port keine Rolle spielen (unverändert mitschreiben).
 
-## 2. Kassenbuch im Docker-Container
+## 2. Kassenbuch im Docker-Container (erledigt)
 
-- Basis: ein JDK 17+ Image (z. B. `eclipse-temurin:17-jre`), Build separat oder
-  Multi-Stage; die App ist dependency-free, also reicht `javac` + `java -cp out kb.WebServer`.
-- Daten liegen außerhalb des Images: Volume für `/data` (`KABU.DBF`, `JABU.DBF`,
-  `STAMM.MEM`) - `KB_DATA` zeigt schon jetzt auf das Verzeichnis, `KB_PORT` und
-  `KB_WEB` sind ebenfalls Umgebungsvariablen. Also kein Image-Change nötig, nur Env + Volume.
-- `Dockerfile` (Multi-Stage: builder mit JDK, runtime nur JRE), `.dockerignore`
-  (`out/`, `/tmp`-Artefakte, `*.pdf`), `docker-compose.yml` mit
-  `ports: "8090:8090"`, `volumes: ./data:/data`, `restart: unless-stopped`.
-- Healthcheck gegen `/api/meta` (die Endpoint existiert bereits).
-- Test in Container: `./test.sh` läuft im Builder-Stage durch, damit der Container
-  bewiesenermaßen grün ist, bevor er ausgeliefert wird.
-- Achtung: die Reports schreiben nach `out/` - im Container nach `/data/reports` oder
-  einen tmpfs-Pfad, sonst scheitert ein Download an fehlenden Rechten.
-- Optional später: `/data` als Backup-Volumen dokumentieren (`docs/DEPLOY.md`).
+- `Dockerfile` (Multi-Stage: `eclipse-temurin:17-jdk` als Builder, `17-jre` als Runtime),
+  `docker-compose.yml` mit Port 8090 und Volume `/data`; Datenüberleben den Container.
+- Keine Abhängigkeiten im Image: nur `javac`/`java -cp out kb.WebServer`, keine Netzwerk-
+  Downloads zur Laufzeit.
+- Umgebungsvariablen unverändert: `KB_DATA=/data`, `KB_PORT=8090`, `KB_WEB=/app/web`.
+- Bestätigt im Test: Image gebaut, Container gestartet, `/api/bookings`, `/api/summary`
+  und CSV-Export liefern Daten aus dem Volume; statische Seite antwortet mit 200.
+- Nicht getan: Healthcheck gegen `/api/meta` (der Endpoint existiert nicht, `/api/summary`
+  wäre der Kandidat), `.dockerignore` (der Build-Kontext ist klein, `data/` und `out/`
+  werden nicht kopiert, weil nur `src`, `web`, `LICENSE`, `NOTICE.txt`, `README.md`
+  im Dockerfile referenziert werden). Reports werden direkt als Response geschrieben,
+  kein Schreibzugriff auf `out/` nötig.
 
 ## 3. TUI (80 Spalten, Theme der Web-UI)
 

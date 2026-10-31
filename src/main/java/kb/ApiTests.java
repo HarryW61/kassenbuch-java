@@ -61,6 +61,7 @@ public final class ApiTests {
             bookingsAndReports();
             crud();
             stamm();
+            firststart();
             catalogue();
             interchange();
             dataBackup();
@@ -268,6 +269,76 @@ public final class ApiTests {
         eq("monthly mode " + monthKey + " count", inMonth, oct.get("count"));
         put("/api/stamm", "{\"periodeMode\":\"4111\"}");
         eq("quarterly mode restored", "4111", get("/api/meta").get("periodeMode"));
+    }
+
+    /**
+     * The guided first start, exercised on placeholder master data. STAMM.MEM is only
+     * ever touched in the scratch copy under /tmp, never in the source directory.
+     */
+    private static void firststart() throws Exception {
+        // read the file as stamm() left it on disk: catalogue and rates from earlier tests
+        // are part of the scratch state and must be restored unchanged afterwards
+        Map<String, String> memo = MemoFile.read(work.resolve("STAMM.MEM"));
+        Map<String, String> pristine = new LinkedHashMap<>(memo);
+        pristine.put("ST_NAME1", "DEINNAME");
+        pristine.put("ST_NAME2", "ZWEITNAME");
+        pristine.put("ST_STRASSE", "BayernWeg");
+        pristine.put("ST_ORT", "IregendWoInBayern");
+        pristine.put("ST_GEWERBE", "Was machst du so");
+        pristine.put("ST_FIAMT", "Wo geht die Kohle hin");
+        pristine.put("ST_STNR", "123/123/12345");
+        MemoWriter.write(work.resolve("STAMM.MEM"), pristine);
+
+        Map<String, Object> q = get("/api/firststart");
+        eq("firststart needed", true, q.get("needed"));
+        List<Object> fields = list(q, "fields");
+        // Gewerbe is optional and already filled in this data set, so it is not asked for;
+        // what matters is that every identity field the assistant offers really needs an answer
+        check("firststart offers several identity fields", fields.size() >= 7);
+        check("firststart asks only identity fields",
+              fields.stream().map(ApiTests::asMap).allMatch(f -> List.of(
+                      "name1", "name2", "strasse", "plz", "ort", "gewerbe",
+                      "finanzamt", "steuernummer").contains(f.get("key"))));
+        Map<String, Object> name1 = asMap(fields.get(0));
+        eq("firststart first field", "name1", name1.get("key"));
+        eq("placeholder not prefilled", "", name1.get("value"));
+        check("firststart marks the tax number required",
+              fields.stream().map(ApiTests::asMap).filter(f -> "steuernummer".equals(f.get("key")))
+                    .anyMatch(f -> Boolean.TRUE.equals(f.get("required"))));
+        check("firststart leaves the rates alone",
+              fields.stream().map(ApiTests::asMap).noneMatch(f -> "rateFull".equals(f.get("key"))));
+
+        // a bad answer is refused and writes nothing at all
+        int bad = status("/api/firststart", "{\"plz\":\"8033\"}");
+        eq("firststart bad PLZ -> 400", 400, bad);
+        eq("firststart wrote nothing on error", "DEINNAME", get("/api/meta").get("name1"));
+        bad = status("/api/firststart", "{}");
+        eq("firststart without answers -> 400", 400, bad);
+
+        Map<String, Object> m = post("/api/firststart", """
+            {"name1":"Erika Musterfrau","name2":"Muster GmbH","strasse":"Musterweg 12",
+             "plz":"80339","ort":"Muenchen","gewerbe":"Handel","finanzamt":"Muenchen",
+             "steuernummer":"007/123/45678"}""");
+        eq("firststart name1", "Erika Musterfrau", m.get("name1"));
+        eq("firststart steuernummer", "007/123/45678", m.get("steuernummer"));
+        eq("firststart keeps the rates", 19.0, m.get("rateFull"));
+        eq("firststart persisted", "007/123/45678", get("/api/meta").get("steuernummer"));
+
+        Map<String, Object> after = get("/api/firststart");
+        eq("firststart done", false, after.get("needed"));
+        eq("firststart no fields left", 0, list(after, "fields").size());
+
+        // a blank answer must not blank out what is already stored
+        m = post("/api/firststart", "{\"name1\":\"Erika Musterfrau\",\"name2\":\"\"}");
+        eq("blank answer keeps old value", "Muster GmbH", m.get("name2"));
+
+        // ref is only used for expectations derived from KABU.DBF; read STAMM.MEM from disk
+        // so the check does not depend on a stale in-memory copy.
+        // `memo` holds the file as stamm() left it, so that - not the pristine placeholder -
+        // is what the restore has to put back.
+        MemoWriter.write(work.resolve("STAMM.MEM"), memo);
+        eq("master data restored", memo.get("ST_STNR"),
+           Stammdaten.from(MemoFile.read(work.resolve("STAMM.MEM"))).stnr());
     }
 
     private static void catalogue() throws Exception {

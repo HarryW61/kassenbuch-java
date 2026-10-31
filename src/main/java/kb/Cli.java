@@ -51,6 +51,7 @@ public final class Cli {
             case "yearend"    -> yearEnd(db, dataDir, jabu, stamm, bookings);
             case "backup"     -> backup(dataDir);
             case "jabu"       -> printJabu(jabu);
+            case "init"       -> init(dataDir, stamm, flag(args, "--yes") != null);
             case "test"       -> Tests.main(args);
             case "help", "-h" -> help();
             default -> help();
@@ -215,6 +216,116 @@ public final class Cli {
     }
 
     /** a tar.gz of everything that makes up the cash book */
+    /**
+     * Guided first start. Only the identity fields a report header needs are asked; the
+     * printer/terminal slots of STAMM.MEM are carried over untouched by MemoWriter. The
+     * preview is shown before anything is written, and only "j" writes.
+     */
+    private static void init(Path dataDir, Stammdaten stamm, boolean assumeYes) throws Exception {
+        List<String> missing = stamm.missingIdentity();
+        System.out.println("Firststart-Assistent (Stammdaten für die Berichtskopfzeilen)");
+        System.out.println("Datenordner: " + dataDir.toAbsolutePath());
+        if (missing.isEmpty()) {
+            System.out.println("Die Stammdaten sind bereits ausgefüllt. Nichts zu tun.");
+            System.out.println(Firststart.preview(Firststart.known(stamm)));
+            System.out.println("Ändern können Sie sie später in der Web-Maske (Tab „Stammdaten“)"
+                    + " oder über PUT /api/stamm.");
+            return;
+        }
+
+        Map<String, String> answers = new java.util.LinkedHashMap<>(Firststart.known(stamm));
+        System.out.println();
+        System.out.println("Bereits bekannt:");
+        if (answers.isEmpty()) System.out.println("  (nichts)");
+        for (Map.Entry<String, String> e : answers.entrySet())
+            System.out.printf("  %-22s %s%n", Firststart.labelOf(e.getKey()), e.getValue());
+
+        // In a real terminal, read line by line: System.console() gives echo and editing,
+        // and each answer arrives before the next question is asked.
+        java.io.Console con = System.console();
+
+        // Piped or redirected input has no console: read everything at once (CP437 or
+        // UTF-8, whichever decodes cleanly) and hand out the lines in order.
+        String[] piped = con == null ? stdinLines() : null;
+        int pos = 0;
+
+        System.out.println();
+        System.out.println("Bitte eingeben - leere Zeile bei optionalen Feldern lässt den alten Wert stehen.");
+        for (Firststart.Field f : Firststart.missingFields(stamm)) {
+            String prompt = f.label() + (f.required() ? " *" : " (optional)")
+                    + (f.hint() == null ? "" : " [" + f.hint() + "]") + ":";
+            while (true) {
+                String raw;
+                if (con != null) {
+                    raw = con.readLine(prompt);
+                    if (raw == null) { System.out.println("Abgebrochen - nichts geschrieben."); return; }
+                } else {
+                    System.out.println(prompt);
+                    if (pos >= piped.length) { System.out.println("Abgebrochen - nichts geschrieben."); return; }
+                    raw = piped[pos++];
+                }
+                if (raw.isBlank() && !f.required()) break;
+                try {
+                    answers.put(f.key(), Firststart.check(f, raw));
+                    break;
+                } catch (Store.ValidationException e) {
+                    System.out.println("  " + e.getMessage() + " - bitte erneut");
+                }
+            }
+        }
+
+        Map<String, Object> body = Firststart.validated(answers);
+        // a rate or mode left unanswered keeps the value from STAMM.MEM, so show it too
+        Map<String, Object> shown = new java.util.LinkedHashMap<>(body);
+        shown.putIfAbsent("rateFull", Firststart.valueOf(stamm, "rateFull"));
+        shown.putIfAbsent("rateReduced", Firststart.valueOf(stamm, "rateReduced"));
+        shown.putIfAbsent("periodeMode", stamm.periodeMode());
+        System.out.println();
+        System.out.println("Vorschau (wird in STAMM.MEM geschrieben):");
+        System.out.print(Firststart.preview(shown));
+
+        // The confirmation is the LAST non-empty line: piped input usually ends with a
+        // blank line, and nothing can be read after the data ran out.
+        String ok;
+        if (assumeYes) ok = "j";
+        else if (con != null) {
+            String answer = con.readLine("Übernehmen? [j/N] ");
+            ok = answer == null ? "" : answer;
+        } else ok = lastNonBlank(piped);
+        if (con == null) System.out.println("Übernehmen? [j/N]  ->  " + ok.trim());
+        if (!ok.trim().toLowerCase().startsWith("j")) {
+            System.out.println("Nichts geschrieben.");
+            return;
+        }
+
+        Map<String, Object> after = new Store(dataDir).updateStamm(body);
+        System.out.println("STAMM.MEM geschrieben.");
+        System.out.print(Firststart.preview(after));
+        System.out.println("Berichte prüfen:  ./run.sh kabu      ./run.sh list");
+    }
+
+    private static String lastNonBlank(String[] lines) {
+        for (int i = lines.length - 1; i >= 0; i--)
+            if (!lines[i].isBlank()) return lines[i];
+        return "";
+    }
+
+    /**
+     * Redirected stdin, decoded as UTF-8 or CP437 - whichever decodes without replacement
+     * characters. Only used when there is no console to read from.
+     */
+    private static String[] stdinLines() throws java.io.IOException {
+        byte[] raw = System.in.readAllBytes();
+        String text = null;
+        for (java.nio.charset.Charset cs : List.of(java.nio.charset.StandardCharsets.UTF_8,
+                LegacyCharset.CODEPAGE)) {
+            String t = new String(raw, cs);
+            if (t.indexOf('\uFFFD') < 0) { text = t; break; }
+        }
+        if (text == null) text = new String(raw, java.nio.charset.StandardCharsets.UTF_8);
+        return text.split("\r?\n", -1);
+    }
+
     private static void backup(Path dataDir) throws Exception {
         Map<String, Object> r = new Store(dataDir).createBackup();
         System.out.println("Datenbackup - Schritte:");
@@ -247,6 +358,12 @@ public final class Cli {
                                    written to out/bak (or KB_BACKUP_DIR) - move it
                                    out of the program folder afterwards
           jabu                     Yearly summaries
+          init [--yes]             Geführter Firststart: Name, Adresse, Finanzamt,
+                                   Steuernummer, Steuersätze, Periodenmodus - nur die
+                                   Felder, die noch Platzhalter oder leer sind; Vorschau
+                                   vor dem Schreiben von STAMM.MEM. In einem Terminal wird
+                                   Feld für Feld abgefragt; bei Pipe-Eingabe ist die letzte
+                                   nicht leere Zeile die Bestätigung, --yes übernimmt sie
         Interchange formats (KABU.DBF stays the live store):
           export json|csv [DATEI] [PERIODE]
                                    without PERIODE every booking is exported

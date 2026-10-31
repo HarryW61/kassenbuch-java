@@ -1,0 +1,19 @@
+# Start the web app with the bookkeeping files in a named volume.
+#
+#   docker compose up -d
+#   open http://localhost:8090
+#
+# Change the port with  KB_PORT=1234 docker compose up
+# Point at an existing data directory with  KB_DATA=/pfad/zum/data docker compose up
+
+services:
+  kassenbuch:
+    build: .
+    image: kassenbuch
+    ports:
+      - "${KB_PORT:-8090}:8090"
+    environment:
+      KB_DATA: /data
+      KB_PORT: "8090"
+    volumes:
+      - ${KB_DATA:-kassenbuch-data}:/data

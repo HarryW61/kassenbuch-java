@@ -267,6 +267,22 @@
 </main>
 
 <div class="toast" id="toast" hidden></div>
+
+<div class="overlay" id="firststart" hidden>
+  <div class="dialog">
+    <h2>Erste Einrichtung</h2>
+    <p class="hint">Die Stammdaten stehen noch auf Platzhaltern. Ohne Name, Adresse und
+      Steuernummer sind die Berichtsköpfe falsch — die Berichte selbst brauchen keine
+      echten Buchungen.</p>
+    <div id="fsFields" class="fsfields"></div>
+    <p class="fserror" id="fsError" hidden></p>
+    <div class="fsactions">
+      <button class="btn primary" id="fsSave">Speichern</button>
+      <button class="btn" id="fsSkip">Später in Stammdaten</button>
+    </div>
+  </div>
+</div>
+
 <script src="/app.js"></script>
 </body>
 </html>

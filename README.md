@@ -104,10 +104,19 @@ KB_DATA=/pfad/zu/daten ./serve.sh    # operate directly on your own files
 Views: **Buchungen** (add/edit/delete with live tax preview), **Umsatzsteuer**,
 **Monatsübersicht**, **Jahresabschluss**, **Stammdaten**, **Berichte** (the
 original ASCII report layouts, downloadable as `.txt`) and **Daten** (JSON/CSV
-export and import).
+export and import). If the master data still holds the shipped placeholders, the
+page opens a guided **Erste Einrichtung** dialog for name, address and tax number
+first — `./run.sh init` does the same on the command line.
 
 Everything writes back to the legacy dBase/MEMO files, so the original `KB.EXE`
 and this web app can work on the same data.
+
+In a container:
+
+```sh
+docker build -t kassenbuch .
+docker run -p 8090:8090 -v "$PWD/data:/data" kassenbuch   # or: docker compose up -d
+```
 
 ## CLI
 

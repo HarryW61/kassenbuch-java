@@ -78,6 +78,22 @@ public final class Api implements com.sun.net.httpserver.HttpHandler {
                     json(ex, 200, store.updateStamm(parseBody(body)));
                     return;
                 }
+                // guided first start: GET asks what is missing, POST writes the answers
+                case "/api/firststart" -> {
+                    if (method.equals("GET")) {
+                        json(ex, 200, Firststart.questionnaire(store.stamm()));
+                        return;
+                    }
+                    if (!method.equals("POST")) { json(ex, 405, error("GET oder POST erforderlich")); return; }
+                    Map<String, String> answers = new LinkedHashMap<>();
+                    for (Map.Entry<String, Object> e : parseBody(body).entrySet()) {
+                        if (e.getValue() != null) answers.put(e.getKey(), String.valueOf(e.getValue()));
+                    }
+                    Map<String, Object> update = Firststart.validated(answers);
+                    if (update.isEmpty()) { json(ex, 400, error("Keine verwertbaren Antworten")); return; }
+                    json(ex, 200, store.updateStamm(update));
+                    return;
+                }
                 case "/api/export" -> {
                     String fmt = q.getOrDefault("fmt", "json");
                     String period = q.get("period");

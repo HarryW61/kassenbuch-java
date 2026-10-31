@@ -245,3 +245,27 @@ code { background: #0b1220; padding: 2px 6px; border-radius: 4px; }
   line-height: 1.45;
   max-width: 62ch;
 }
+
+/* guided first start: asks only for the identity fields the report header needs */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 9, 14, 0.78);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.overlay[hidden] { display: none; }
+.dialog {
+  width: min(560px, 100%);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 18px 20px;
+}
+.dialog h2 { margin: 0 0 6px; font-size: 16px; color: var(--accent); }
+.fsfields { display: grid; gap: 10px; margin: 14px 0; }
+.fsfields label span { color: var(--accent-2); }
+.fserror { color: var(--danger); font-size: 12px; margin: 0 0 10px; }
+.fsactions { display: flex; gap: 10px; }

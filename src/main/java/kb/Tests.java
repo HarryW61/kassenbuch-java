@@ -55,6 +55,35 @@ public final class Tests {
         List<Buchung> bookings = new ArrayList<>();
         for (String[] rec : db.live()) bookings.add(Buchung.from(rec, db));
 
+        // --- guided first start -----------------------------------------------
+        // the shipped master data holds placeholders, so the assistant must ask
+        check("Stammdaten sind Platzhalter", "true", String.valueOf(stamm.isPristine()));
+        check("Platzhalter-Feld erkannt", "true", String.valueOf(stamm.isPlaceholder("name1")));
+        check("Ausgefülltes Feld kein Platzhalter", "false", String.valueOf(Firststart.isPlaceholder(stamm, "rateFull")));
+        check("Raten sind brauchbar", "true", String.valueOf(stamm.ratesUsable()));
+        java.util.Map<String, Object> frage = Firststart.questionnaire(stamm);
+        check("Fragebogen meldet Bedarf", "true", String.valueOf(frage.get("needed")));
+        java.util.List<?> asks = (java.util.List<?>) frage.get("fields");
+        check("nur Identitätsfelder gefragt", "8", String.valueOf(asks.size()));
+        StringBuilder keys = new StringBuilder();
+        for (Object o : asks) keys.append(((java.util.Map<?, ?>) o).get("key")).append(',');
+        check("Steuersätze nicht gefragt", "false", String.valueOf(keys.toString().contains("rateFull")));
+        check("leerer Wert vorbefüllt", "true",
+              String.valueOf(((java.util.Map<?, ?>) asks.get(0)).get("value").equals("")));
+        // answers are validated before anything is written
+        java.util.Map<String, String> antworten = new java.util.LinkedHashMap<>();
+        antworten.put("name1", "Erika Musterfrau");
+        antworten.put("steuernummer", "007/123/45678");
+        java.util.Map<String, Object> body = Firststart.validated(antworten);
+        check("Antwort übernommen", "Erika Musterfrau", String.valueOf(body.get("name1")));
+        check("leere Antwort bleibt weg", "true", String.valueOf(!Firststart.validated(java.util.Map.of("ort", "  ")).containsKey("ort")));
+        boolean abgelehnt = false;
+        try { Firststart.validated(java.util.Map.of("plz", "8033")); } catch (Store.ValidationException e) { abgelehnt = true; }
+        check("PLZ mit 4 Ziffern abgelehnt", "true", String.valueOf(abgelehnt));
+        abgelehnt = false;
+        try { Firststart.validated(java.util.Map.of("steuernummer", "007-123")); } catch (Store.ValidationException e) { abgelehnt = true; }
+        check("Steuernummer-Format abgelehnt", "true", String.valueOf(abgelehnt));
+
         check("Anzahl Buchungen", 32, bookings.size());
         check("Buchung 1 Datum", "2016-10-10", bookings.get(0).datum().toString());
         check("Buchung 1 Steuer", 388.46, bookings.get(0).steuer());

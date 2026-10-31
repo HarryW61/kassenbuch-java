@@ -19,6 +19,12 @@ Views and how they map to the original program:
 | Jahresabschluss| year-end closing           | `TOOL.PRG`       |
 | Daten          | – (new: JSON/CSV)          | `docs/BACKEND.md` |
 
+On page load the UI calls `GET /api/firststart`. While the identity fields are empty
+or still carry the shipped placeholders, a **Erste Einrichtung** dialog asks for them
+one at a time and writes STAMM.MEM through `POST /api/firststart`; dismissing it leaves
+the file untouched. Tax rates and period mode are not part of it — they already hold
+usable defaults and are edited in **Stammdaten**. The CLI equivalent is `./run.sh init`.
+
 The **Umsatzsteuer** view follows the period selector in the top bar, exactly like
 the summary bar above it: changing the period reloads the UST-Voranmeldung figures.
 It names the period it is showing, so a stale figure cannot go unnoticed. The same
@@ -33,7 +39,7 @@ The **Monatsübersicht** view shows exactly what the *Kassen-Information* report
 shows: one row per month with that month's own Einnahmen, Ausgaben and Ergebnis
 (the difference), plus a `Gesamt` row that is the sum over all months. Selection
 is fixed to "alle Perioden"; amounts are per month, not cumulative.
-The **Daten** view exports the bookings (optionally one period) as JSON, CSV or
+The **Daten** view exports the bookings (optionally one period) as JSON, CSV or DBF
 and imports such a file back into `KABU.DBF` - either appended or as a full
 replacement, which first writes `KABU.BAK`.
 

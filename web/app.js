@@ -457,6 +457,45 @@ function tickClock() {
   $("#clock").textContent = now.toLocaleDateString("de-DE") + " " + now.toLocaleTimeString("de-DE");
 }
 
+/* ---------------- guided first start ---------------- */
+
+let firststartFields = [];
+
+async function offerFirststart() {
+  let q;
+  try {
+    q = await api("/api/firststart");
+  } catch (err) {
+    return;                                   // the dialog is a courtesy, never a blocker
+  }
+  if (!q.needed) return;
+  firststartFields = q.fields;
+  $("#fsFields").innerHTML = firststartFields.map((f) => `
+    <div>
+      <label for="fs-${f.key}">${escapeHtml(f.label)}${f.required ? " <span>*</span>" : " (optional)"}</label>
+      <input id="fs-${f.key}" maxlength="${f.max}" value="${escapeHtml(f.value || "")}"
+             placeholder="${escapeHtml(f.hint || "")}">
+    </div>`).join("");
+  $("#fsError").hidden = true;
+  $("#firststart").hidden = false;
+  const first = $("#fs-" + firststartFields[0].key);
+  if (first) first.focus();
+}
+
+async function saveFirststart() {
+  const answers = {};
+  for (const f of firststartFields) answers[f.key] = $("#fs-" + f.key).value.trim();
+  try {
+    await api("/api/firststart", { method: "POST", body: answers });
+    $("#firststart").hidden = true;
+    toast("Stammdaten gespeichert", "ok");
+    await Promise.all([loadMeta(), refreshVisible()]);
+  } catch (err) {
+    $("#fsError").textContent = err.message;
+    $("#fsError").hidden = false;
+  }
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   try {
     $("#fDatum").value = new Date().toISOString().slice(0, 10);
@@ -509,6 +548,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   $("#reportRun").addEventListener("click", runReport);
   $("#dataPeriod").addEventListener("change", refreshExportLinks);
   $("#importBtn").addEventListener("click", doImport);
+  $("#fsSave").addEventListener("click", saveFirststart);
+  $("#fsSkip").addEventListener("click", () => { $("#firststart").hidden = true; });
   tickClock();
   setInterval(tickClock, 1000);
+  offerFirststart();
 });
