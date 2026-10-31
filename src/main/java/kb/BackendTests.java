@@ -193,9 +193,12 @@ public final class BackendTests {
         // ---------------------------------------------------------------- KABU.DBF pur
         // the fixture fallback doubles as our scratch copy, so only a real data/ can be
         // checked for untouched files here; the fixtures themselves are read-only below
-        boolean sourceIsScratch = source.toAbsolutePath().equals(work.toAbsolutePath());
+        // without a data/ there is nothing outside the scratch copy to protect, and the
+        // fixture set was only read - both checks would compare a file against itself
+        boolean sourceIsScratch = !Files.exists(source.resolve("KABU.DBF"))
+                || source.toAbsolutePath().equals(work.toAbsolutePath());
         if (sourceIsScratch) {
-            System.out.println("übersprungen: KABU.DBF-Unverändertheit (Quelle = Arbeitsexemplar)");
+            System.out.println("übersprungen: KABU.DBF-Unverändertheit (kein data/ als Quelle)");
         } else {
             check("Quelle KABU.DBF unverändert", true, md5(source.resolve("KABU.DBF")).equals(md5OfOriginal));
             check("Kein Austauschformat im Datenordner", true,
@@ -211,7 +214,9 @@ public final class BackendTests {
 
     static {
         try {
-            md5OfOriginal = md5(Path.of(System.getenv().getOrDefault("KB_DATA_SRC", "data")).resolve("KABU.DBF"));
+            Path dir = Path.of(System.getenv().getOrDefault("KB_DATA_SRC", "data"));
+            Path kabu = dir.resolve("KABU.DBF");
+            md5OfOriginal = Files.exists(kabu) ? md5(kabu) : "";
         } catch (Exception e) {
             md5OfOriginal = "";
         }
