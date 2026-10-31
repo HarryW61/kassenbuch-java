@@ -3,7 +3,7 @@
 Source: the original `.PRG` files (Harbour 3.0 / xBase, compiled with `hbmk2`),
 not part of this repository — the behaviour was read off them and is described here.
 Purpose: cash book (Kassenbuch) for a small German sole proprietorship,
-run in an 80x25 DOS/ANSI terminal. Author: Harald Wilczek, 1994-2016.
+run in an 80x25 DOS/ANSI terminal. Author of the original: the owner of this repository, 1994-2016.
 
 ## 1. Program structure
 

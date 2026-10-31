@@ -4,7 +4,8 @@ The original program printed its reports by writing to a file with
 `SET PRINTER TO "Kassenbuch.txt"` / `"Buchungsliste.txt"` (see `PRINT.PRG`,
 procedures `DRKABU()` and `DRBULI()`). The printed artefacts are preserved in
 the original printer files `Kassenbuch.txt` and `Buchungsliste.txt`
-  (kept out of this repository; `fixtures/golden/` holds copies of both).
+  (kept out of this repository in `fixtures/legacy/`; the tests compare against them
+  when that directory exists locally).
 
 This port reproduces that layout **byte for byte** and additionally renders the
 same pages as PDF.
@@ -16,7 +17,8 @@ same pages as PDF.
 | `src/main/java/kb/LegacyReport.java` | builds the exact legacy pages (text) |
 | `src/main/java/kb/PdfReport.java`    | dependency-free PDF writer (PDF 1.4, A4 landscape, Courier) |
 | `src/main/java/kb/Reports.java`      | facade: `pages()`, `report()`, `dosReport()`, `pdfReport()` |
-| `fixtures/golden/*.txt`              | golden files taken from the original printouts |
+| `fixtures/anonymisiert/golden/*.txt` | golden baselines with placeholder identity (shipped) |
+| `fixtures/legacy/golden/*.txt`         | untouched KB.EXE printouts, local only (git-ignored) |
 | `src/main/java/kb/ReportTests.java`  | golden-file + page-break tests |
 
 ## Layout rules extracted from PRINT.PRG
@@ -130,8 +132,11 @@ Web: the **Berichte** view has "Download (.txt · CP437)" and "Download (.pdf)".
 `kb.ReportTests` checks:
 
 * page count and rows per page (23/9 and 27/5),
-* byte-identical output against `fixtures/golden/Kassenbuch.txt` and
-  `fixtures/golden/Buchungsliste.txt` — the golden printouts were made from a
+* byte-identical output against `fixtures/anonymisiert/golden/*.txt`, and — when
+  `fixtures/legacy/` is present — against the untouched KB.EXE printouts in
+  `fixtures/legacy/golden/*.txt`. That legacy comparison translates the pre-existing
+  "EUR" marker into today's currency-neutral totals block; everything else must match
+  byte for byte. The golden printouts were made from a
   31/30-row snapshot, so the comparison uses the matching row subset,
 * `Buchungsliste.txt` is untouched original KB.EXE output. `Kassenbuch.txt` was
   **re-recorded** from this port after the currency marker (EUR) was dropped from the
@@ -142,9 +147,9 @@ Web: the **Berichte** view has "Download (.txt · CP437)" and "Download (.pdf)".
 Re-record a baseline deliberately, never as a side effect of a failing test:
 
 ```sh
-./test.sh                                   # writes out/{Kassenbuch,Buchungsliste}-generated.txt
-cp out/Kassenbuch-generated.txt      fixtures/golden/Kassenbuch.txt
-cp out/Buchungsliste-generated.txt   fixtures/golden/Buchungsliste.txt
+./test.sh                                # writes out/{kassenbuch,buchungsliste}-generated.txt
+cp out/kassenbuch-generated.txt   fixtures/anonymisiert/golden/Kassenbuch.txt
+cp out/buchungsliste-generated.txt  fixtures/anonymisiert/golden/Buchungsliste.txt
 ```
 
 `ReportTests` renders the same 31/30-row subset as the baselines, so those two files

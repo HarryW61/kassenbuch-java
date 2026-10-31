@@ -22,7 +22,7 @@ public final class Cli {
         Path stammMem = dataDir.resolve("STAMM.MEM");
 
         if (!Files.exists(kabu)) {
-            System.err.println("KABU.DBF not found in " + dataDir + " (copy it from ~/hb30_test)");
+            System.err.println("KABU.DBF not found in " + dataDir + " (run ./reset.sh to create it from fixtures/)");
             System.exit(1);
         }
 

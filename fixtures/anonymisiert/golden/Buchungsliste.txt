@@ -1,12 +1,11 @@
 
-
 -----------------------------------------------------------------------------------------------------------------
-Kassenbuch fr Brigitte Wilczek BW-Dekorationen                              Zeitraum:  4416
-Buchenweg 17   85599 Parsdorf
-Gewerbe: Dekoration               Finanzamt: Ebersberg                          Steuernummer: 112/147/15340
+Buchungsliste fr Testname Testfirma                              Zeitraum:  4416
+Testweg 1   00000 Testort
+Gewerbe: Testgewerbe               Finanzamt: Testfinanzamt                          Steuernummer: 000/000/00000
 -----------------------------------------------------------------------------------------------------------------
                                                                                                     Seite 1
-Bu.Nr.  B.Datum   Bu.Art   Text                   Einnahme     Ausgabe.Brt.    Ausgabe.Nto     Steuer      Steuerschlssel
+Bu.Nr.  B.Datum   Bu.Art   Text                   Einnahme     Ausgabe.Brt.    Ausgabe.Nto     Steuer      Steuerschluessel
 -----------------------------------------------------------------------------------------------------------------
    1   10.10.16   E      Erloese 19%              2433.00                                       388.46        2
    2   15.10.16   E      Erloese 19%              1433.00                                       228.80        2
@@ -31,33 +30,21 @@ Bu.Nr.  B.Datum   Bu.Art   Text                   Einnahme     Ausgabe.Brt.    A
   21   26.12.16   E      Erloese 7%                230.00                                        36.72        2
   22   26.12.16   E      Erloese 19%               234.00                                        37.36        2
   23   31.12.16   A      WEK 19%                                    54.00            45.38        8.62        2
-
------------------------------------------------------------------------------------------------------------------
-          Einahme Netto  (Zwischensumme)      7420.05          Umsatzsteuer   (Zwischensumme)      1364.94
-          Ausgaben Netto (Zwischensumme)      3537.27          Mehrwertsteuer (Zwischensumme)       672.08
-
------------------------------------------------------------------------------------------------------------------
-Kassenbuch fr Brigitte Wilczek BW-Dekorationen                              Zeitraum:  4416
-Buchenweg 17   85599 Parsdorf
-Gewerbe: Dekoration               Finanzamt: Ebersberg                          Steuernummer: 112/147/15340
------------------------------------------------------------------------------------------------------------------
-                                                                                                    Seite 2
-Bu.Nr.  B.Datum   Bu.Art   Text                   Einnahme     Ausgabe.Brt.    Ausgabe.Nto     Steuer      Steuerschluessel
------------------------------------------------------------------------------------------------------------------
   24   31.12.16   A      WEK 7%                                     87.00            81.31        5.69        1
   25   31.12.16   A      WEK 7%                                     65.00            60.75        4.25        1
   26   31.12.16   E      Erloese 19%               643.00                                       102.66        2
   27   31.12.16   A      WEK 19%                                   327.00           274.79       52.21        2
+-----------------------------------------------------------------------------------------------------------------
+Buchungsliste fr Testname Testfirma                              Zeitraum:  4416
+Testweg 1   00000 Testort
+Gewerbe: Testgewerbe               Finanzamt: Testfinanzamt                          Steuernummer: 000/000/00000
+-----------------------------------------------------------------------------------------------------------------
+                                                                                                    Seite 2
+Bu.Nr.  B.Datum   Bu.Art   Text                   Einnahme     Ausgabe.Brt.    Ausgabe.Nto     Steuer      Steuerschlssel
+-----------------------------------------------------------------------------------------------------------------
   28   31.12.16   A      KFZ                                       465.60           391.26       74.34        2
   29   31.12.16   A      Bewirtung                                 245.00           205.88       39.12        2
   30   31.12.16   A      Bro/Arbeitsmittel                        122.34           102.81       19.53        2
-  31   31.12.16   A      WEK 19%                                   423.43           355.82       67.61        2
 
------------------------------------------------------------------------------------------------------------------
-          Einahme Netto        7960.39          Umsatzsteuer         1467.60
-          Ausgaben Netto       5009.89          Mehrwertsteuer        934.83
-          -------------------------------------------------------------------------
-          Unterschied          2950.50          Unterschied           532.77
-
-   >>>>>> Anzahl Buchungen 31  <<<<<<  
-   >>>>>> Ende Kassenbuch 4416 <<<<<<  
+   >>>>>> Anzahl Buchungen 30  <<<<<<  
+   >>>>>> Ende Buchungsliste <<<<<<  

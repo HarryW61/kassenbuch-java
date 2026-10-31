@@ -97,7 +97,7 @@ POST /api/import?mode=replace          body: the raw file bytes
 
 ```json
 {
-  "name1": "Brigitte Wilczek",
+  "name1": "Testname",
   "email": "kontakt@bw-deko.de",          // ST_EMAIL, max 40 chars
   "rateFull": "19",
   "rateReduced": "7",

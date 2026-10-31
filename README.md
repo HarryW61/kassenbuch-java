@@ -67,8 +67,8 @@ kassenbuch-java/
   docs/WEB.md                  # web views and their legacy counterparts
   docs/IDEAS.md                # next steps: firststart assistant, Docker, TUI
   data/                        # working copy of KABU.DBF, JABU.DBF, STAMM.MEM
-  fixtures/                    # frozen copy of the original legacy data (used by the tests)
-  fixtures/golden/             # original Kassenbuch.txt / Buchungsliste.txt printouts
+  fixtures/anonymisiert/       # test data with placeholder identity - what ships in this repo
+  fixtures/legacy/             # your real legacy files and original printouts (git-ignored)
   web/                         # index.html, app.js, style.css (no build step)
   src/main/java/kb/
     DbfFile.java               # dBase III reader/writer (Harbour descriptor quirks)
@@ -158,8 +158,11 @@ PDF with no external dependencies. Details: [docs/REPORTS.md](docs/REPORTS.md).
 ./test.sh
 ```
 
-* unit assertions and golden-file report tests run against `fixtures/`
-  (a frozen copy of the original legacy data),
+* unit assertions and golden-file report tests run against `fixtures/anonymisiert/`
+  (bookings and layout from the original program, identity replaced by placeholders),
+* when `fixtures/legacy/` exists locally, the report tests additionally compare against
+  the untouched KB.EXE printouts - the strongest check that nothing in the layout drifted,
+
 * the API integration tests run against a scratch copy of the current `data/` in
   `/tmp`, and derive their expectations from the data itself,
 * the backend tests read the current `data/KABU.DBF` and import into a scratch copy
@@ -173,8 +176,9 @@ so the real `data/` is never modified.
 tax number) stay on your machine. Create it from whatever you have:
 
 ```sh
-./reset.sh fixtures     # demo data from fixtures/ — works straight after a clone
-./reset.sh /pfad/zu/daten   # your own KABU.DBF / JABU.DBF / STAMM.MEM
+./reset.sh              # demo data from fixtures/anonymisiert/ — works straight after a clone
+./reset.sh legacy       # your own files from fixtures/legacy/
+./reset.sh /pfad/zu/daten   # your own KABU.DBF / JABU.DBF / STAMM.MEM from anywhere
 ```
 
 `KB_DATA=/pfad/zu/daten ./serve.sh` also runs directly on another directory without

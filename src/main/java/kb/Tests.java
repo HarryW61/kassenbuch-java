@@ -12,7 +12,8 @@ import java.util.List;
 /**
  * No framework: run with  ./run.sh test
  * Compares the port against the numbers produced by the original KB.EXE
- * (see ~/hb30_test/Kassenbuch.txt and Buchungsliste.txt).
+ * (the original printouts live in fixtures/legacy/, which is not part of
+ * this repository).
  */
 public final class Tests {
 

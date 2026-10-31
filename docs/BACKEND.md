@@ -44,7 +44,7 @@ von Hand nachbearbeiten kann:
   "periodeLabel": "Q4 2026",
   "anzahl": 8,
   "stamm": {
-    "name1": "Vorname", "name2": "Dekoration",
+    "name1": "Vorname", "name2": "Firma",
     "steuernummer": "123/123/12345", "finanzamt": "Finanzamt",
     "rateFull": 19.0, "rateReduced": 7.0, "periodeMode": "4111"
   },
@@ -145,4 +145,5 @@ Toleranz der CSV-Kopfzeile und die Automatik-Erkennung.
 Die API-Integrationstests (`kb.ApiTests`) laufen ebenfalls gegen eine Arbeitskopie der
 aktuellen `data/KABU.DBF`; ihre Erwartungen werden aus den Dateien berechnet, die
 Assertions hängen also nicht an festen Buchungszahlen oder Perioden. Die Goldtests der
-Report-Layouts bleiben bei den eingefrorenen `fixtures/` und den Original-Drucken.
+Report-Layouts bleiben bei `fixtures/anonymisiert/` und, falls vorhanden, den
+Original-Drucken in `fixtures/legacy/`.

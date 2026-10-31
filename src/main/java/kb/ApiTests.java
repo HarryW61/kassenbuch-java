@@ -236,8 +236,8 @@ public final class ApiTests {
 
     private static void stamm() throws Exception {
         Map<String, Object> m = put("/api/stamm", """
-            {"name2":"BW-Dekorationen GmbH","rateFull":"19","rateReduced":"7","periodeMode":"0111"}""");
-        eq("stamm.name2", "BW-Dekorationen GmbH", m.get("name2"));
+            {"name2":"Testfirma GmbH","rateFull":"19","rateReduced":"7","periodeMode":"0111"}""");
+        eq("stamm.name2", "Testfirma GmbH", m.get("name2"));
         eq("stamm.mode", "0111", m.get("periodeMode"));
         m = put("/api/stamm", "{\"email\":\"kontakt@bw-deko.de\"}");
         eq("stamm.email", "kontakt@bw-deko.de", m.get("email"));
@@ -246,13 +246,13 @@ public final class ApiTests {
         eq("email clamped to 40", longMail.substring(0, 40), m.get("email"));
         // the tax number must survive an update - the web form posts it as "stnr",
         // the documented API key is "steuernummer"; both have to work
-        m = put("/api/stamm", "{\"stnr\":\"112/147/15340\"}");
-        eq("stamm.steuernummer via stnr alias", "112/147/15340", m.get("steuernummer"));
-        m = put("/api/stamm", "{\"steuernummer\":\"112/147/15341\"}");
-        eq("stamm.steuernummer", "112/147/15341", m.get("steuernummer"));
-        eq("stnr persisted in STAMM.MEM", "112/147/15341", get("/api/meta").get("steuernummer"));
+        m = put("/api/stamm", "{\"stnr\":\"000/000/00000\"}");
+        eq("stamm.steuernummer via stnr alias", "000/000/00000", m.get("steuernummer"));
+        m = put("/api/stamm", "{\"steuernummer\":\"000/000/00001\"}");
+        eq("stamm.steuernummer", "000/000/00001", m.get("steuernummer"));
+        eq("stnr persisted in STAMM.MEM", "000/000/00001", get("/api/meta").get("steuernummer"));
         check("ST_STNR written to disk",
-            new String(Files.readAllBytes(work.resolve("STAMM.MEM")), StandardCharsets.ISO_8859_1).contains("112/147/15341"));
+            new String(Files.readAllBytes(work.resolve("STAMM.MEM")), StandardCharsets.ISO_8859_1).contains("000/000/00001"));
         // with monthly mode, the same bookings now group by month
         java.time.LocalDate tag = inPeriod.get(inPeriod.size() - 1).datum();
         String monthKey = String.format("%02d%02d", tag.getMonthValue(), tag.getYear() % 100);

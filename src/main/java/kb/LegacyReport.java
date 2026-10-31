@@ -14,7 +14,7 @@ import java.util.Locale;
  * Faithful reproduction of the KB.EXE "printer" output (PRINT.PRG -> DRBULI / DRKABU).
  *
  * Layout facts taken from the original source and the golden files
- * fixtures/golden/{Buchungsliste,Kassenbuch}.txt:
+ * fixtures/anonymisiert/golden/{Buchungsliste,Kassenbuch}.txt:
  *
  *  - every line is at most 113 columns wide ("-" * 113 rule)
  *  - the header (dr_head) repeats on every page

@@ -5,6 +5,9 @@ out/
 # Created by ./reset.sh from fixtures/ or from your own legacy files. Never commit.
 data/
 
+# Real legacy data from the original program: name, address, tax number. Local only.
+fixtures/legacy/
+
 # Scratch copies that tests create outside the project
 /tmp/
 
