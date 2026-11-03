@@ -118,7 +118,8 @@ In a container:
 
 ```sh
 docker build -t kassenbuch .
-docker run -p 8090:8090 -v "$PWD/data:/data" -v "$PWD/out:/out" kassenbuch   # or: docker compose up -d
+docker run -p 8090:8090 --user $(id -u):$(id -g) -v "$PWD/data:/data" -v "$PWD/out:/out" kassenbuch
+# or: docker compose up -d   -> container "kassenbuch", runs as your own uid/gid
 ```
 
 ## CLI

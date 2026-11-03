@@ -262,19 +262,28 @@ to be writable and backed up.
 
 ```sh
 docker build -t kassenbuch .
-docker run -p 8090:8090 -v "$PWD/data:/data" -v "$PWD/out:/out" kassenbuch
+docker run -p 8090:8090 --user $(id -u):$(id -g) \
+  -v "$PWD/data:/data" -v "$PWD/out:/out" kassenbuch
 ```
 
 or with compose:
 
 ```sh
-docker compose up -d      # http://localhost:8090
+docker compose up -d      # http://localhost:8090, container named "kassenbuch"
 ```
 
 The bookkeeping files live in the `/data` volume, so they survive container restarts.
 Point the volume at an existing directory instead of a named one with
 `KB_DATA=/pfad/zum/data docker compose up`. The image is built from the JDK only —
 no dependencies are downloaded at runtime.
+
+**Run as yourself, not as root.** Compose sets `user: "${UID}:${GID}"`; with plain
+`docker run` pass `--user $(id -u):$(id -g)`. Otherwise backups, the year-end CSV and
+the copy `KABU.YY` land in your mounted directories owned by **root**, which you then
+cannot delete or replace without sudo. The image itself runs as uid 1000, so it works
+with a plain `docker run` too — only the ownership of host-mounted files differs.
+If your uid is not 1000 and you want the image to match it: `docker build --build-arg`
+is deliberately not used here; pass `--user` at run time instead.
 
 `/out` (env `KB_OUT`) holds the files the program generates: the year-end CSV archive
 and the tar.gz backups, both under `/out/bak`. Reports are not written there — the API
@@ -288,12 +297,14 @@ or they stop being backups.
 
 | Symptom                                   | Cause / fix                                                             |
 |-------------------------------------------|-------------------------------------------------------------------------|
+| `reset.sh` copies nothing                 | pass the source: `./reset.sh anonymisiert`, `legacy`, or a path — bare `fixtures/` holds no data files |
 | `KABU.DBF fehlt`                          | wrong data directory — check `KB_DATA`, or run `./reset.sh` for demo data |
 | Amount shows no tax                       | tax key is `0`; use `1` (reduced) or `2` (full)                          |
 | Import aborts with one error              | fix that row; nothing was written, the file is untouched                  |
 | Text is cut off                           | 30 characters is the legacy field width — shorten the text                |
 | Wrong period for a booking                | the period comes from date + `ST_PERIODE`; check the period mode in Stammdaten |
 | UST differs by cents from my own calc     | intended: the assessment base is rounded down to whole euros first        |
+| Backup file owned by `root` on the host   | container ran as root — start it with `--user $(id -u):$(id -g)`, Compose does this already |
 | German umlauts look wrong in the `.txt`   | open it with codepage 437 (that is what the legacy printer used)          |
 
 Tests: `./test.sh` runs unit tests, golden-layout report tests and the API/backend

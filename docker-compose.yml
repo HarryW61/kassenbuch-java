@@ -11,6 +11,11 @@ services:
   kassenbuch:
     build: .
     image: kassenbuch
+    container_name: kassenbuch
+    # Run as the invoking user so files written into mounted host directories (backups,
+    # KABU.YY) are owned by that user instead of root. The mapping is set in Compose,
+    # not baked into the image, so it follows whoever starts the container.
+    user: "${UID:-1000}:${GID:-1000}"
     ports:
       - "${KB_PORT:-8090}:8090"
     environment:
