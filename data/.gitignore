@@ -1,0 +1,10 @@
+# Everything in this directory is the cash book itself: bookings, yearly summaries and
+# master data (name, address, tax number).
+#
+# The repository ships three files here on purpose - an empty KABU.DBF, an empty JABU.DBF
+# and a STAMM.MEM full of placeholders - so that a clone starts on a clean database and the
+# Firststart assistant asks for the identity fields. Once you have filled them in, these
+# same paths hold private data, which is why nothing below this line may be committed.
+#
+# To undo: `git add -f data/<file>` would force it back in. Do not; keep private data out.
+*

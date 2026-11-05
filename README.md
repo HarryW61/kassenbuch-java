@@ -68,8 +68,9 @@ kassenbuch-java/
   docs/REPORTS.md              # exact legacy report layout + PDF rendering
   docs/BACKEND.md              # JSON / CSV interchange formats
   docs/WEB.md                  # web views and their legacy counterparts
-  docs/IDEAS.md                # next steps: firststart assistant, Docker, TUI
-  data/                        # working copy of KABU.DBF, JABU.DBF, STAMM.MEM
+  docs/IDEAS.md                # next steps and ideas (TUI deliberately dropped)
+  data/                        # starts empty with placeholders; yours after Firststart,
+                               # never committed (data/.gitignore)
   fixtures/anonymisiert/       # test data with placeholder identity - what ships in this repo
   fixtures/legacy/             # your real legacy files and original printouts (git-ignored)
   web/                         # index.html, app.js, style.css (no build step)
@@ -119,7 +120,7 @@ In a container:
 ```sh
 docker build -t kassenbuch .
 docker run -p 8090:8090 --user $(id -u):$(id -g) -v "$PWD/data:/data" -v "$PWD/out:/out" kassenbuch
-# or: docker compose up -d   -> container "kassenbuch", runs as your own uid/gid
+# or: docker compose up -d   -> container "kassenbuch", owned by your own uid/gid
 ```
 
 ## CLI
@@ -184,8 +185,14 @@ so the real `data/` is never modified.
 
 ## Running it on your own data
 
-`data/` is git-ignored: bookings, yearly summaries and master data (name, address,
-tax number) stay on your machine. Create it from whatever you have:
+The repository ships `data/` with an **empty** `KABU.DBF`, an empty `JABU.DBF` and a
+`STAMM.MEM` full of placeholders (`DEINNAME`, `123/123/12345`, …). A clone therefore
+starts immediately, on no bookings at all, and the **Firststart** assistant asks for the
+identity fields the report headers need. Once you have typed them in, the file is yours —
+`data/` is then excluded from Git by `data/.gitignore`, so your bookings, addresses and tax
+number never reach a commit.
+
+To work on existing files instead:
 
 ```sh
 ./reset.sh              # demo data from fixtures/anonymisiert/ — works straight after a clone
@@ -194,8 +201,8 @@ tax number) stay on your machine. Create it from whatever you have:
 ```
 
 `KB_DATA=/pfad/zu/daten ./serve.sh` also runs directly on another directory without
-copying anything. After the first start, fill in your master data in the
-**Stammdaten** tab (the shipped file still holds placeholders).
+copying anything. The **Stammdaten** tab edits the same fields the Firststart assistant
+asked for; both write back into `STAMM.MEM`.
 
 ## License
 

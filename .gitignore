@@ -2,8 +2,16 @@
 out/
 
 # Live data: bookings, yearly summaries, master data (name, tax number, address).
-# Created by ./reset.sh from fixtures/ or from your own legacy files. Never commit.
-data/
+# The repository ships an empty KABU.DBF, an empty JABU.DBF and a placeholder STAMM.MEM so
+# that a clone starts on a clean database and the Firststart assistant asks for the identity
+# fields. From then on these files are private: data/.gitignore excludes everything inside,
+# while the three shipped files below stay tracked.
+data/.gitignore
+data/*
+!data/.gitignore
+!data/KABU.DBF
+!data/JABU.DBF
+!data/STAMM.MEM
 
 # Real legacy data from the original program: name, address, tax number. Local only.
 fixtures/legacy/

@@ -35,11 +35,15 @@ public final class ApiTests {
         // never let a misconfigured scratch directory point back at the real data
         if (work.toAbsolutePath().equals(src.toAbsolutePath()))
             throw new IllegalStateException("KB_TEST_DATA must differ from KB_DATA_SRC: " + work);
-        // a fresh clone has no data/; fall back to the anonymised fixtures so the API
-        // tests stay runnable without personal bookings
-        if (!Files.exists(src.resolve("KABU.DBF"))) {
-            src = Path.of(System.getenv().getOrDefault("KB_FIXTURES", "fixtures/anonymisiert"));
-            System.out.println("data/ fehlt - API-Tests laufen gegen " + src.resolve("KABU.DBF"));
+        // Same rule as the backend tests: without bookings there is nothing to exercise, so
+        // an empty data/KABU.DBF (the one a clone ships) or an empty directory of your own
+        // falls back to the anonymised fixtures. Only read from there - the scratch copy in
+        // `work` is what gets written.
+        if (!hasBookings(src)) {
+            Path fallback = Path.of(System.getenv().getOrDefault("KB_FIXTURES", "fixtures/anonymisiert"));
+            System.out.println("keine Buchungen in " + src + " - API-Tests laufen gegen "
+                    + fallback.resolve("KABU.DBF"));
+            src = fallback;
         }
         if (Files.exists(work)) deleteTree(work);
         copyTree(src, work);
@@ -590,5 +594,16 @@ public final class ApiTests {
             else Files.delete(p);
         }
         Files.delete(root);
+    }
+
+    /** does this directory hold a KABU.DBF with at least one booking? */
+    private static boolean hasBookings(Path dir) {
+        Path dbf = dir.resolve("KABU.DBF");
+        if (!Files.exists(dbf)) return false;
+        try {
+            return new DbfFile(dbf).live().size() > 0;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

@@ -7,6 +7,7 @@ package kb;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -92,6 +93,31 @@ public final class Store {
     }
 
     private DbfFile open() throws IOException { return new DbfFile(kabuPath); }
+
+    /** Read master data straight from STAMM.MEM, for a screen that edits the file itself. */
+    public Map<String, String> stammRaw() throws IOException {
+        return MemoFile.read(stammPath);
+    }
+
+    /**
+     * Write one STAMM.MEM slot verbatim - no key translation, no rate recalculation.
+     * The legacy program saved the whole variable set on F12; the terminal screens need
+     * exactly that for fields this port does not translate (Telefon, Telefax and the
+     * printer sequences), so what is typed is what lands in the file.
+     */
+    public void writeStammSlot(String key, String value) throws IOException {
+        Map<String, String> memo = MemoFile.read(stammPath);
+        memo.put(key, value == null ? "" : value.trim());
+        MemoWriter.write(stammPath, memo);
+    }
+
+    /** Rewrite the whole booking catalogue in one step (Buchungstexte screen). */
+    public Stammdaten writeCatalogue(List<String> ein, List<String> aus) throws IOException {
+        Map<String, String> memo = MemoFile.read(stammPath);
+        applyCatalogue(memo, ein, aus);
+        MemoWriter.write(stammPath, memo);
+        return Stammdaten.from(memo);
+    }
 
     public List<Buchung> bookings() throws IOException {
         return all();
@@ -259,6 +285,18 @@ public final class Store {
         return found;
     }
 
+    /**
+     * Remove the deleted records from KABU.DBF - PACK in the original, which BUCHEN.PRG
+     * offered right after the browse. Deletion only sets the dBase delete flag, so a row
+     * stays recoverable until this runs.
+     */
+    public int pack() throws IOException {
+        DbfFile db = open();
+        int marked = db.deletedCount();
+        db.save();
+        return marked;
+    }
+
     public Map<String, Object> yearEnd() throws IOException {
         List<Buchung> rows = all();
         Map<String, Object> m = new LinkedHashMap<>();
@@ -272,8 +310,7 @@ public final class Store {
         Files.copy(kabuPath, dataDir.resolve(backup), StandardCopyOption.REPLACE_EXISTING);
 
         // readable CSV copy in front of the archive: out/bak/KABU-<jahr>.csv
-        Path csvDir = backupDir();
-        Files.createDirectories(csvDir);
+        Path csvDir = ensureBackupDir();
         Path csvFile = csvDir.resolve("KABU-" + jahr + ".csv");
         Files.writeString(csvFile, BookingsIo.csv(rows), StandardCharsets.UTF_8);
 
@@ -322,6 +359,30 @@ public final class Store {
     }
 
     /**
+     * Make sure the backup directory exists, and say what went wrong when it does not.
+     *
+     * Docker mounts a named volume as root on its first use, so a container running as a
+     * normal uid cannot create /out/bak there. Files.createDirectories() would throw a raw
+     * AccessDeniedException naming only the path; this adds the reason and the fix to the
+     * message that reaches the browser and the CLI.
+     */
+    public static Path ensureBackupDir() throws IOException {
+        Path dir = backupDir();
+        try {
+            Files.createDirectories(dir);
+            return dir;
+        } catch (FileAlreadyExistsException e) {
+            // exists already - writable or not, the write itself will report that
+            return dir;
+        } catch (IOException e) {
+            throw new IOException("Backupverzeichnis " + dir + " kann nicht angelegt werden: "
+                    + e.getMessage() + ". Bei Docker legt die erste Volumebenutzung das Verzeichnis"
+                    + " als root an - Abhilfe: docker run --user 0 ... chown, oder ein Bind-Mount"
+                    + " auf ein Verzeichnis des eigenen Users (KB_OUT=./out).", e);
+        }
+    }
+
+    /**
      * One archive of everything that makes up the cash book: KABU.DBF, JABU.DBF,
      * STAMM.MEM and every year-end copy KABU.xx. The files are packed as a tar and
      * compressed with gzip (both written here, so no dependency and no external tool).
@@ -345,8 +406,7 @@ public final class Store {
         LocalDateTime now = LocalDateTime.now();
         String stamp = now.format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
         String archiveName = "KB_DATA_BACK_" + stamp + ".tar.gz";
-        Path dir = backupDir();
-        Files.createDirectories(dir);
+        Path dir = ensureBackupDir();
         Path archive = dir.resolve(archiveName);
 
         ByteArrayOutputStream tar = new ByteArrayOutputStream();
@@ -473,7 +533,7 @@ public final class Store {
     }
 
     /** Rewrite the ST_KTO catalogue (8 slots per group in the legacy layout, extras as ST_KTOE/ST_KTOA). */
-    private static void applyCatalogue(Map<String, String> memo, List<String> ein, List<String> aus) {
+    public static void applyCatalogue(Map<String, String> memo, List<String> ein, List<String> aus) {
         for (String k : new ArrayList<>(memo.keySet())) if (k.startsWith("ST_KTO")) memo.remove(k);
         for (int i = 0; i < ein.size(); i++) {
             memo.put(i < 8 ? "ST_KTO" + (i + 1) : "ST_KTOE" + (i + 1), ein.get(i));
@@ -488,6 +548,11 @@ public final class Store {
         if (o == null) return 0;
         if (o instanceof Number n) return n.doubleValue();
         return Double.parseDouble(o.toString().replace(',', '.'));
+    }
+
+    /** DD.MM.YYYY (or ISO) into a date, the same tolerant reading the API uses */
+    public static LocalDate parseDate(String s) {
+        return asDate(s);
     }
 
     private static LocalDate asDate(Object o) {
@@ -544,12 +609,7 @@ public final class Store {
         m.put("rateFull", s.rateFull());
         m.put("rateReduced", s.rateReduced());
         m.put("periodeMode", s.periodeMode());
-        m.put("periodeModeLabel", switch (s.periodeMode()) {
-            case "1111" -> "jährlich";
-            case "0111" -> "monatlich";
-            case "4111" -> "quartalsweise";
-            default -> "unbekannt";
-        });
+        m.put("periodeModeLabel", Steuer.periodLabel(s.periodeMode()));
         m.put("einnahmeTexte", java.util.Arrays.asList(s.textEinnahme()));
         m.put("ausgabeTexte", java.util.Arrays.asList(s.textAusgabe()));
         m.put("periods", periods());

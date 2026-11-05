@@ -38,18 +38,22 @@ public final class BackendTests {
             throw new IllegalStateException("KB_BACKEND_DATA must differ from KB_DATA_SRC: " + work);
 
         Path src = source;
-        // a fresh clone has no data/; fall back to the anonymised fixtures so these
-        // tests stay runnable without personal bookings. They are read from there but
-        // never written: everything destructive happens in `work`.
-        if (!Files.exists(src.resolve("KABU.DBF"))) {
+        // A fresh clone ships data/KABU.DBF empty, and an empty book has nothing to import
+        // or round-trip. Fall back to the anonymised fixtures whenever there are no bookings
+        // to work with - in the shipped data/, in a directory of your own that happens to be
+        // empty, or when data/ is missing altogether. Read from there only: everything
+        // destructive still happens in `work`.
+        if (!hasBookings(src)) {
             src = Path.of(System.getenv().getOrDefault("KB_FIXTURES", "fixtures/anonymisiert"));
-            System.out.println("data/ fehlt - Backend-Tests laufen lesend gegen " + src.resolve("KABU.DBF"));
+            System.out.println("keine Buchungen in " + source + " - Backend-Tests laufen lesend gegen "
+                    + src.resolve("KABU.DBF"));
         }
         if (!Files.exists(src.resolve("KABU.DBF"))) {
             System.out.println("FAIL KABU.DBF fehlt in " + src);
             System.exit(1);
         }
         System.out.println("Quelle: " + src.resolve("KABU.DBF") + "  Arbeitsexemplar: " + work.resolve("KABU.DBF"));
+
 
         Files.createDirectories(work);
         for (String f : new String[]{"KABU.DBF", "JABU.DBF", "STAMM.MEM"})
@@ -277,5 +281,16 @@ public final class BackendTests {
         else ok = expected == null ? actual == null : expected.equals(actual);
         System.out.println((ok ? "ok   " : "FAIL ") + name + (ok ? "" : ": erwartet " + expected + ", erhalten " + actual));
         if (!ok) failed++;
+    }
+
+    /** does this directory hold a KABU.DBF with at least one booking? */
+    private static boolean hasBookings(Path dir) {
+        Path dbf = dir.resolve("KABU.DBF");
+        if (!Files.exists(dbf)) return false;
+        try {
+            return new DbfFile(dbf).live().size() > 0;
+        } catch (Exception e) {
+            return false;                     // unreadable counts as "no bookings to test with"
+        }
     }
 }

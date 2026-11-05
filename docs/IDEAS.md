@@ -39,11 +39,17 @@ die ausgelieferte `data/STAMM.MEM` enthält `ST_NAME1 = DEINNAME`,
   im Dockerfile referenziert werden). Reports werden direkt als Response geschrieben,
   kein Schreibzugriff auf `out/` nötig.
 
-## 3. TUI (80 Spalten, Theme der Web-UI)
+## 3. TUI - verworfen
 
-Steht in `docs/SPEC.md` §6. Dunkles Terminal-Theme statt Harbour-Blau, plain ANSI,
-keine neuen Abhängigkeiten. Screens: `BUCHEN`, `ABUCH`, `STAMM`, `DRUCKEN`, Menü wie
-in `MENU.PRG`.
+Ein interaktives Terminalinterface wurde versucht und wieder entfernt. Der Grund ist
+nicht der Aufwand, sondern die Technik: `MENU TO` und `INKEY()` im Original brauchen
+Rohmodus, CSI-Auswertung und Cursorsteuerung - nichts davon bietet der JDK. Was sich
+bauen ließ, war größer und fragiler als die Web-UI, die dieselben Funktionen schon hat
+(Buchen, UST, Berichte, Stammdaten, Jahresabschluss, Backup) und im Browser läuft.
+
+Würde man es erneut angehen, wäre ein Neuanfang sinnvoller als der alte Ansatz: eine
+JLine-Bindung oder ein reines Berichtsmenü ohne Rohmodus - die byte-exakten Berichte
+aus `LegacyReport` brauchen keine Tastatursteuerung.
 
 ## 4. Aufräumen (klein, opportunistisch)
 

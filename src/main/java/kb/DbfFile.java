@@ -106,6 +106,16 @@ public final class DbfFile {
     public List<Field> fields() { return fields; }
     public int recordCount() { return records.size(); }
 
+    /** Records in file order, with null where the dBase delete flag is set. */
+    public List<String[]> records() { return records; }
+
+    /** How many records carry the delete flag and would be dropped by save(). */
+    public int deletedCount() {
+        int n = 0;
+        for (String[] r : records) if (r == null) n++;
+        return n;
+    }
+
     /** Live records only (deleted ones skipped), in file order. */
     public List<String[]> live() {
         List<String[]> out = new ArrayList<>();

@@ -12,16 +12,20 @@ services:
     build: .
     image: kassenbuch
     container_name: kassenbuch
-    # Run as the invoking user so files written into mounted host directories (backups,
-    # KABU.YY) are owned by that user instead of root. The mapping is set in Compose,
-    # not baked into the image, so it follows whoever starts the container.
-    user: "${UID:-1000}:${GID:-1000}"
+    # Start as root so docker/entrypoint.sh can hand the volume roots over to the invoking
+    # user on the container's very first start - Docker creates them root-owned. The script
+    # drops CAP_CHOWN and re-execs the server as ${UID}:${GID}, so nothing but that one step
+    # ever runs privileged. Files written into mounted host directories stay owned by that
+    # user, not by root.
+    user: root
     ports:
       - "${KB_PORT:-8090}:8090"
     environment:
       KB_DATA: /data
       KB_OUT: /out
       KB_PORT: "8090"
+      KB_RUN_UID: "${UID:-1000}"
+      KB_RUN_GID: "${GID:-1000}"
     volumes:
       - ${KB_DATA:-kassenbuch-data}:/data
       - ${KB_OUT:-kassenbuch-out}:/out

@@ -172,13 +172,8 @@ public final class Firststart {
         return out;
     }
 
-    /** period mode as the user reads it */
+    /** period mode as the user reads it - the same wording as the web API and terminal */
     public static String periodLabel(String mode) {
-        return switch (mode) {
-            case "1111" -> "jährlich";
-            case "0111" -> "monatlich";
-            case "4111" -> "quartalsweise";
-            default -> "unbekannt";
-        };
+        return Steuer.periodLabel(mode);
     }
 }

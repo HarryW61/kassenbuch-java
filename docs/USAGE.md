@@ -277,13 +277,17 @@ Point the volume at an existing directory instead of a named one with
 `KB_DATA=/pfad/zum/data docker compose up`. The image is built from the JDK only —
 no dependencies are downloaded at runtime.
 
-**Run as yourself, not as root.** Compose sets `user: "${UID}:${GID}"`; with plain
-`docker run` pass `--user $(id -u):$(id -g)`. Otherwise backups, the year-end CSV and
-the copy `KABU.YY` land in your mounted directories owned by **root**, which you then
-cannot delete or replace without sudo. The image itself runs as uid 1000, so it works
-with a plain `docker run` too — only the ownership of host-mounted files differs.
-If your uid is not 1000 and you want the image to match it: `docker build --build-arg`
-is deliberately not used here; pass `--user` at run time instead.
+**Run as yourself, not as root.** Compose starts the container as root for one step only:
+`docker/entrypoint.sh` hands `/data` and `/out` over to `${UID}:${GID}`, drops `CAP_CHOWN`
+and re-execs the server as that user. Without this handover Docker would leave a freshly
+created volume owned by **root** — the backup then fails on `AccessDeniedException`, and
+files in host-mounted directories could not be deleted or replaced without sudo. With plain
+`docker run` you can either let the entrypoint do the same (`-e KB_RUN_UID=$(id -u) -e
+KB_RUN_GID=$(id -g)`) or skip it by passing `--user $(id -u):$(id -g)` directly; both work,
+the second one only fails if the volume was already created root-owned by an earlier run.
+The image itself runs as uid 1000, so a plain `docker run` works too — only the ownership
+of host-mounted files differs. If your uid is not 1000 and you want the image to match it:
+`docker build --build-arg` is deliberately not used here; pass the id at run time instead.
 
 `/out` (env `KB_OUT`) holds the files the program generates: the year-end CSV archive
 and the tar.gz backups, both under `/out/bak`. Reports are not written there — the API

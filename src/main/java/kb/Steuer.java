@@ -41,6 +41,19 @@ public final class Steuer {
         }
     }
 
+    /**
+     * The period mode as an operator reads it. One place for CLI, web API and terminal,
+     * because all three show the same Stammdaten screen and must not drift apart.
+     */
+    public static String periodLabel(String mode) {
+        return switch (mode == null ? "" : mode.trim()) {
+            case "1111" -> "jährlich";
+            case "0111" -> "monatlich";
+            case "4111" -> "quartalsweise";
+            default -> "unbekannt";
+        };
+    }
+
     public static String periodeLabel(String periode) {
         if (periode.length() == 4 && periode.charAt(0) == '4') {
             return "Q" + periode.charAt(1) + " " + fullYear(periode.substring(2));

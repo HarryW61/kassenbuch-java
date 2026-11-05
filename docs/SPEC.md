@@ -125,10 +125,10 @@ all records (`PACK`).
 * [x] JSON and CSV export/import with DBF as the live store - see [BACKEND.md](BACKEND.md)
 * [x] Docker packaging: multi-stage `Dockerfile` (JDK build, JRE runtime) and
       `docker-compose.yml`, data in a `/data` volume via `KB_DATA`
-* [ ] interactive TUI reproducing the original 80-column screens (`BUCHEN`, `ABUCH`,
-      `STAMM`, `DRUCKEN`) in the **theme of the web UI** - dark background with green and
-      amber accents, not the Harbour blue/white field colours. Plain ANSI, JDK-only,
-      real terminal height rather than a fixed 25 rows
+* [ ] ~~interactive TUI reproducing the original 80-column screens~~ - dropped: raw-mode
+      input, CSI parsing and cursor control are not in the JDK, and what could be built was
+      more fragile than the web UI that already covers the same functions. See
+      [IDEAS.md](IDEAS.md) §3 for how a second attempt would start differently
 * [ ] a genuine SQLite-backed live store (would replace DBF, not just exchange with it)
       - the dependency-free SQLite writer was removed: hand-rolling the file format
       proved unreliable for larger datasets. A real store would need a driver or an

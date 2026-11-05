@@ -193,8 +193,7 @@ public final class Cli {
         Files.copy(dataDir.resolve("KABU.DBF"), dataDir.resolve(backup), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
         System.out.printf("  1. KABU.DBF gesichert als %s%n", backup);
 
-        Path csvDir = Store.backupDir();
-        Files.createDirectories(csvDir);
+        Path csvDir = Store.ensureBackupDir();
         Path csvFile = csvDir.resolve("KABU-" + jahr + ".csv");
         Files.writeString(csvFile, BookingsIo.csv(bookings), java.nio.charset.StandardCharsets.UTF_8);
         System.out.printf("  2. CSV-Export %s (%d Buchungen)%n", csvFile, bookings.size());
