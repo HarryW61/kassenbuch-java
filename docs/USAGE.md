@@ -277,6 +277,14 @@ Point the volume at an existing directory instead of a named one with
 `KB_DATA=/pfad/zum/data docker compose up`. The image is built from the JDK only —
 no dependencies are downloaded at runtime.
 
+**A fresh clone needs nothing before `docker compose up`.** The image carries the three
+files that a clone ships — an empty `KABU.DBF`, an empty `JABU.DBF` and a placeholder
+`STAMM.MEM` — as content of `/data`, which Docker copies into a named volume on its first
+use. `docker/entrypoint.sh` also fills a volume that arrives empty for another reason: it
+copies `/seed` into an **empty** `/data` only, never over files that already exist. So your
+own bookings and master data are never replaced, and `./reset.sh` on the host is not needed
+for container use.
+
 **Run as yourself, not as root.** Compose starts the container as root for one step only:
 `docker/entrypoint.sh` hands `/data` and `/out` over to `${UID}:${GID}`, drops `CAP_CHOWN`
 and re-execs the server as that user. Without this handover Docker would leave a freshly

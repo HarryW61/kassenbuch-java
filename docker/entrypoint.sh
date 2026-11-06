@@ -10,16 +10,27 @@
 # command is re-executed as KB_RUN_UID:KB_RUN_GID - the uid the app must run as, which is
 # the invoking user's id passed in by Compose. Everything after this line runs unprivileged.
 #
-# Nothing is rewritten when the directories already belong to the target user, so a normal
-# restart costs one test per directory.
+# A volume that was created before the image shipped seed files (or whose contents were
+# deleted) arrives empty, and the server would exit on "KABU.DBF fehlt in /data". The seed
+# directory is filled only into an EMPTY data directory - never over a book that already has
+# bookings or real master data.
 
 set -eu
 
 uid="${KB_RUN_UID:-${UID:-1000}}"
 gid="${KB_RUN_GID:-${GID:-1000}}"
+data="${KB_DATA:-/data}"
 
 if [ "$(id -u)" = "0" ]; then
-    for dir in "${KB_DATA:-/data}" "${KB_OUT:-/out}"; do
+    if [ -d /seed ] && [ -z "$(ls -A "$data" 2>/dev/null)" ]; then
+        cp /seed/* "$data"/ 2>/dev/null || \
+            echo "kb-entrypoint: /seed konnte nicht nach $data kopiert werden" >&2
+        # the copies were made while still root; hand them over before becoming the app user,
+        # otherwise a host-mounted directory would hold root-owned seed files
+        chown -R "$uid:$gid" "$data" 2>/dev/null || \
+            echo "kb-entrypoint: $data kann nicht an $uid:$gid uebergeben werden" >&2
+    fi
+    for dir in "$data" "${KB_OUT:-/out}"; do
         mkdir -p "$dir"
         # -c instead of -R: only correct the mount point itself. Anything below it either
         # already belongs to the target user or was placed there by a previous run, and a

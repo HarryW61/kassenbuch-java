@@ -120,7 +120,7 @@ In a container:
 ```sh
 docker build -t kassenbuch .
 docker run -p 8090:8090 --user $(id -u):$(id -g) -v "$PWD/data:/data" -v "$PWD/out:/out" kassenbuch
-# or: docker compose up -d   -> container "kassenbuch", owned by your own uid/gid
+# or: docker compose up -d   -> container "kassenbuch", starts straight after a clone
 ```
 
 ## CLI
