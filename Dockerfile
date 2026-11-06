@@ -16,7 +16,12 @@
 FROM eclipse-temurin:17-jdk AS build
 WORKDIR /src
 COPY src/main/java src/main/java
+# The executable bit is deliberately set here rather than left to COPY. Git does track file
+# modes, but a working tree that was moved by cp -r, rsync without -p, a Windows filesystem or
+# an archive loses it - and then the container dies on "exec: kb-entrypoint: permission denied"
+# before anything of ours runs. chmod makes the start independent of how the files arrived.
 COPY docker/entrypoint.sh /usr/local/bin/kb-entrypoint
+RUN chmod 0755 /usr/local/bin/kb-entrypoint
 RUN javac --release 17 -d out $(find src/main/java -name '*.java')
 
 # Seed stage: the three files a clone ships. COPY of an empty directory produces nothing,
@@ -61,6 +66,7 @@ RUN mkdir -p /data /out && cp /seed/* /data/ && chown -R 1000:1000 /data /out
 # whatever uid the app will run as, drops the CAP_CHOWN capability and re-execs itself as
 # that uid. A second start finds everything already in place and does nothing.
 COPY --from=build /usr/local/bin/kb-entrypoint /usr/local/bin/kb-entrypoint
+RUN chmod 0755 /usr/local/bin/kb-entrypoint
 
 USER 1000:1000
 
